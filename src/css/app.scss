@@ -1,1 +1,15 @@
 // app global css in SCSS form
+.background-Primary {
+    background-color: var(--brand-primary)
+}
+.background-Secondary {
+    background-color: var(--brand-secondary)
+}
+.q-tabs {
+    background-color: var(--brand-primary);
+    color: var(--brand-secondary)
+}
+.q-table {
+    background-color: var(--brand-primary);
+    color: var(--brand-secondary)
+}
