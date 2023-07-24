@@ -1,12 +1,15 @@
-import { onMounted } from 'vue';
+import { onMounted, ref, toRef } from 'vue';
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import UtilCookies from '../../shared/utils/Cookies'
+import Messages from '../modalMessages/MessagesPage.vue'
 import { COOKIE_NAME_TOYOTA, COOKIE_NAME_LEXUS } from '../../shared/constants/Global'
 import { LexusTheme, ToyotaTheme } from '../../shared/styles/colors/Colors';
 import '../../shared/styles/stylesGlobal.css'
 import AuthenticationInitialApi from './AuthenticationInitialApi';
 import HttpService from '../../shared/services/HttpService';
+
+const loadingAuth = ref(false)
 const initiateAuthentication = async () => {
     const token = 'tcap1@tpo||eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbl9wb3J0YWwiOiJ0Y2FwMUB0cG8iLCJwd2RfcG9ydGFsIjoidGVzdGU0NTYifQ.FStiuViSMxYNHf1F7zuU7kwLgIfvYDWrU4zuSgRTR0M'
     if (import.meta.env.MODE === 'development') {
@@ -42,17 +45,18 @@ const initiateAuthentication = async () => {
         // return
     }
     try {
+        loadingAuth.value = true
         const response = await AuthenticationInitialApi.login(token)
         HttpService.accessToken = response.token
+        loadingAuth.value = false
     } catch (e: any) {
-        console.log('error', e)
-        if (!e.statusCode) {
+        if (e.statusCode !== 200) {
+            loadingAuth.value = false
+            console.log('error', e.statusCode)
             // this.errorMessage = ''
-            return
         }
-        // this.errorMessage = e.message
     } finally {
-        // this.isLoading = false
+        loadingAuth.value = false
     }
 }
 onMounted(() => {
@@ -61,9 +65,9 @@ onMounted(() => {
 </script>
 
 <template>
-    <div>
         <div>
         </div>
-        <slot></slot>
-    </div>
+                    <messages :loading="loadingAuth"> </messages>
+                    <slot>
+                    </slot>
 </template>

@@ -43,7 +43,7 @@ class HttpService {
 			if (this.accessToken) {
 				request.headers = {
 					...request.headers,
-					Authorization: `Bearer ${this.accessToken}`
+					'accessToken': `${this.accessToken}`
 				};
 			}
 			return request;
@@ -107,7 +107,6 @@ class HttpService {
 		url: string,
 		data: K,
 	): Promise<T> {
-		console.log(data)
 		return await this.http.post<T, T>(url, data, {
 			headers: {
 				'Content-Type': 'application/json',

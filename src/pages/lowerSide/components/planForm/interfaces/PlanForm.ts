@@ -1,6 +1,6 @@
-export interface Model {
+
+export interface PlanYear {
     car: Car[];
-    carModel: Car;
     forecast: Forecast[];
 }
 
@@ -31,31 +31,30 @@ export interface Forecast {
 }
 
 
-export interface NewModel {
-    from: string;
-    model: string;
-    order: number;
-    to: string;
-    type: string;
-}
-
-export type ModelSendType = {
-    idModel: number;
-    isDetail: boolean;
+export type PlanSendType = {
     year: number;
 }
 
-export class ModelSendModel {
-    public idModel = 'asdasdasd'
-    public isDetail = false;
+export class PlanSendModel {
     public year = 0;
 
     toModel () {
         return {
-            idModel: this.idModel,
-            isDetail: this.isDetail,
             year: this.year
         };
     }
 }
 
+export type PlanExcelSendType = {
+    yearPlan: number;
+}
+
+export class PlanExcelSendModel {
+    public yearPlan = 0;
+
+    toModel () {
+        return {
+            yearPlan: this.yearPlan
+        };
+    }
+}
