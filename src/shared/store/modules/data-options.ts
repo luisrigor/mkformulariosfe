@@ -10,8 +10,6 @@ export const useDataOptions = defineStore('dataOptions', () => {
             years: [],
             months: []
         },
-
-
     })
     const formatterY = new Intl.DateTimeFormat('pt-PT', { year: 'numeric' })
     dataOptionsStore.yearActual = formatterY.format(new Date())
@@ -33,16 +31,13 @@ export const useDataOptions = defineStore('dataOptions', () => {
             tempNum++
         }
         date.toLocaleString('pt-PT', { year: 'numeric' })
-
     }
     generateDataSelect()
     return {
         // State Properties
         dataOptionsStore,
         // Getters
-        // // userAsing: computed(() => user.value * user.value),
         // Actions
-        // asingListDealer: () => asingListDealerBy({ uno: 1 }),
         generateDataSelect
 
     }

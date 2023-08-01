@@ -52,7 +52,7 @@ class HttpService {
 		this.http.interceptors.response.use(
 			// @ts-expect-error no typoes
 			async (response: AxiosResponse<any>) => {
-				return response.data;
+				return response.data.type == ("text/csv" || 'application/octet-stream') ? response : response.data;
 			},
 			async (error: any) => {
 				const httpError: HttpError | null = HttpError.error(error);
@@ -68,7 +68,7 @@ class HttpService {
 
 	public get<T> (url: string): Promise<T>;
 	public get<T, K extends any> (url: string, params: K): Promise<T>;
-	public get<T, K extends any> (url: string, params?: K): Promise<T> {
+	public get<T, K extends any> (url: string, params?: K, config?: AxiosRequestConfig): Promise<T> {
 		/**
 	*
 	* To reuse the same promise in case the same request is done at the same time
@@ -80,13 +80,11 @@ class HttpService {
 		if (request) {
 			return request;
 		}
-
+		const axiosConfig: AxiosRequestConfig = { params, ...config };
 		this.requests.set(
 			requestKey,
 			this.http
-				.get(url, {
-					params
-				})
+				.get(url, axiosConfig)
 				.finally(() => this.requests.delete(requestKey))
 		);
 
@@ -137,19 +135,30 @@ class HttpService {
 		return await this.http.patch<T, T>(url, data, config);
 	}
 
-	public async upload<T, K = any> (
+	public async upload<T, K = any>(
 		method: 'POST' | 'PUT',
 		url: string,
-		model: K,
-		files: any
+		file: any
 	): Promise<T> {
 		return await this.http.request({
 			method,
 			url,
-			data: '',
+			data: file,
 			headers: {
 				'Content-Type': 'multipart/form-data'
 			}
+		});
+	}
+	public async downloadFileCSV<T, K = any,> (
+		method: 'POST' | 'GET',
+		url: string,
+		body?: K
+	): Promise<T> {
+		return await this.http.request({
+			method,
+			url,
+			data: body,
+			responseType: 'blob',
 		});
 	}
 }

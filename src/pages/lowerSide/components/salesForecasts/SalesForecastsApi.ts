@@ -1,17 +1,27 @@
 import HttpService from '../../../../shared/services/HttpService';
 
-import { Model, ModelSendModel } from './interfaces/Model';
-
-// http://localhost:8083/mk-services/formularios/pvm/model?idModel=-1&isDetail=falseyear=2023
-class ModelApi {
-    public pvmModel = (data: ModelSendModel): Promise<Model> => {
-        const url = 'formularios/pvm/model?' + localStorage.getItem('Current')
-        const headers = {
-            'Content-Type': 'application/json',
-            loginToken: data
-        }
-        return HttpService.get(url, data)
+import { PvmDataInitial, SalesForecastsSendModel, SalesForecastsExcelSendType, SalesForecastsDeleteSendType } from './interfaces/SalesForecasts';
+class SalesForecastsApi {
+    public pvmDataInitial = (data: SalesForecastsSendModel): Promise<PvmDataInitial> => {
+        const url = 'formularios/pvm/pvm'
+        return HttpService.post(url, data)
+    };
+    public pvmOidNet = (): Promise<PvmDataInitial> => {
+        const url = 'formularios/pvm/oid-net'
+        return HttpService.post(url)
+    };
+    public downloadExcel = (month: string, data: SalesForecastsExcelSendType): Promise<BlobPart> => {
+        const url = 'formularios/pvm/export-by-month?month=' + month
+        return HttpService.downloadFileCSV('POST', url, data)
+    };
+    public pvmProvideDealer = (data: SalesForecastsDeleteSendType): Promise<PvmDataInitial> => {
+        const url = 'formularios/pvm/pvm-provide-dealer?cancelReasons=' + data.cancelReasons + '&idPVM=' + data.idPVM
+        return HttpService.post(url)
+    };
+    public pvmRequestChange = (data: SalesForecastsDeleteSendType): Promise<PvmDataInitial> => {
+        const url = 'formularios/pvm/pvm-request-change?cancelReasons=' + data.cancelReasons + '&idPVM=' + data.idPVM
+        return HttpService.post(url)
     };
 }
 
-export default new ModelApi();
+export default new SalesForecastsApi();

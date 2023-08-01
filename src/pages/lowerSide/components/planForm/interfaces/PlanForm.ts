@@ -46,11 +46,11 @@ export class PlanSendModel {
 }
 
 export type PlanExcelSendType = {
-    yearPlan: number;
+    yearPlan: number
 }
 
 export class PlanExcelSendModel {
-    public yearPlan = 0;
+    public yearPlan = 0
 
     toModel () {
         return {

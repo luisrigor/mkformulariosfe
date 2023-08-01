@@ -1,59 +1,50 @@
-export interface Model {
-    car: Car[];
-    carModel: Car;
-    forecast: Forecast[];
+export interface BudgetYear {
+    budgetDealers: BudgetDealer[];
+    carTypes: CarType[];
+    year: number;
 }
 
-export interface Car {
-    active: string;
-    changedBy: string;
-    createdBy: string;
-    dtChanged: string;
-    dtCreated: string;
-    dtFrom: string;
-    dtTo: string;
-    exportOrder: number;
-    id: number;
-    name: string;
-    type: string;
+export interface BudgetDealer {
+    budgets: Budget[];
+    dealers: string[];
 }
 
-export interface Forecast {
-    changedBy: string;
-    createdBy: string;
-    dtChanged: string;
-    dtCreated: string;
-    forecast: number;
-    id: number;
-    idCarModel: number;
+export interface Budget {
+    idPvmCarModel: number;
     month: number;
+    oidDealer: string;
+    plates: number;
+    subDealer: number;
     year: number;
 }
 
-
-export interface NewModel {
-    from: string;
-    model: string;
-    order: number;
-    to: string;
+export interface CarType {
+    id: number;
     type: string;
 }
+export type BudgetExcelSendType = {
+    yearBudget: number;
+}
 
-export type ModelSendType = {
-    idModel: number;
-    isDetail: boolean;
+export class BudgetExcelSendModel {
+    public yearBudget = 0;
+
+    toModel () {
+        return {
+            yearBudget: this.yearBudget
+        };
+    }
+}
+
+export type BudgetSendType = {
     year: number;
 }
 
-export class ModelSendModel {
-    public idModel = 'asdasdasd'
-    public isDetail = false;
+export class BudgetSendModel {
     public year = 0;
 
     toModel () {
         return {
-            idModel: this.idModel,
-            isDetail: this.isDetail,
             year: this.year
         };
     }

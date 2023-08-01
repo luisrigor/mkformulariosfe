@@ -1,16 +1,14 @@
 import HttpService from '../../../../shared/services/HttpService';
 
-import { Model, ModelSendModel } from './interfaces/Model';
-
-// http://localhost:8083/mk-services/formularios/pvm/model?idModel=-1&isDetail=falseyear=2023
+import { Model, ModelSendModel, NewModelSendModel } from './interfaces/Model';
 class ModelApi {
     public pvmModel = (data: ModelSendModel): Promise<Model> => {
         const url = 'formularios/pvm/model?'
-        const headers = {
-            'Content-Type': 'application/json',
-            loginToken: data
-        }
         return HttpService.get(url, data)
+    };
+    public pvmNewModel = (data: ModelSendModel, id: number): Promise<Model> => {
+        const url = 'formularios/pvm/new-model?idModel=' + id
+        return HttpService.post(url, data)
     };
 }
 

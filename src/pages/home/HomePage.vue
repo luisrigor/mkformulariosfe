@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { reactive } from 'vue';
 import LowerSide from 'src/pages/lowerSide/LowerSidePage.vue'
-// import AuthenticationInitial from 'src/AuthenticationInitial.vue'
 const dataHomePage = reactive({
   sideOption: {
     register: {

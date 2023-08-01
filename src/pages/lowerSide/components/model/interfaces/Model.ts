@@ -30,15 +30,6 @@ export interface Forecast {
     year: number;
 }
 
-
-export interface NewModel {
-    from: string;
-    model: string;
-    order: number;
-    to: string;
-    type: string;
-}
-
 export type ModelSendType = {
     idModel: number;
     isDetail: boolean;
@@ -46,7 +37,7 @@ export type ModelSendType = {
 }
 
 export class ModelSendModel {
-    public idModel = 'asdasdasd'
+    public idModel = ''
     public isDetail = false;
     public year = 0;
 
@@ -55,6 +46,31 @@ export class ModelSendModel {
             idModel: this.idModel,
             isDetail: this.isDetail,
             year: this.year
+        };
+    }
+}
+export type NewModelSendType = {
+    from: string;
+    model: string;
+    order: number;
+    to: string;
+    type: string;
+}
+
+export class NewModelSendModel {
+    public from = ''
+    public model = ''
+    public order = 0;
+    public to = ''
+    public type = ''
+
+    toModel () {
+        return {
+            from: this.from,
+            model: this.model,
+            order: this.order,
+            to: this.to,
+            type: this.type
         };
     }
 }

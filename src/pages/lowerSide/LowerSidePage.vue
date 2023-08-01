@@ -25,36 +25,6 @@ const dataLowerSidePage = reactive({
   },
   pageTitles: {
     mainTitle: '',
-    year: 'Ano',
-    month: 'Mês'
-  },
-  dataDownloadExcel: {
-    oneMonth: {
-      title: 'Exportar Excel (1 Mes)',
-      amount: 1,
-    },
-    threeMonths: {
-      title: 'Exportar Excel (3 Meses)',
-      amount: 3,
-    },
-  },
-  dataNovo: {
-    frotasSul: {
-      title: 'Novo PVM Frotas Sul (75)',
-      amount: 0,
-    },
-    iMobilizado: {
-      title: 'Novo PVM IMobilizado (99)',
-      amount: 0,
-    },
-    frotasGaia: {
-      title: 'Novo PVM Frotas Gaia (40)',
-      amount: 0,
-    },
-    export: {
-      title: 'Novo PVM Exportação (32)',
-      amount: 0,
-    },
   },
   yearActual: ''
 })
@@ -103,9 +73,6 @@ onMounted(async () => {
   }
   await generateDataSelect()
 })
-const downloadExcel = async (month: number) => {
-  console.log('downloadExcel')
-}
 </script>
 <template>
   <q-card>
