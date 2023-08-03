@@ -22,6 +22,7 @@ const initiateAuthentication = async () => {
     const brand = cookie === COOKIE_NAME_LEXUS ? 'lexus' : 'toyota'
     const root = document.documentElement;
     if (brand === 'toyota') {
+        localStorage.setItem('app', 'Toyota')
         console.log('is toyota')
         if (root) {
             localStorage.setItem('Current', '33')
@@ -31,6 +32,7 @@ const initiateAuthentication = async () => {
             root.style.setProperty('--q-primary', ToyotaTheme.secondary)
         }
     } else {
+        localStorage.setItem('app', 'Lexus')
         console.log('is Lexus')
         if (root) {
             localStorage.setItem('Current', '10010')
@@ -51,7 +53,7 @@ const initiateAuthentication = async () => {
         const response = await AuthenticationInitialApi.login(token)
         HttpService.accessToken = response.token
         loadingAuth.value = false
-        localStorage.setItem('roles', response.roles);
+        localStorage.setItem('roles', response.roles)
     } catch (e: any) {
         if (e.statusCode !== 200) {
             loadingAuth.value = false

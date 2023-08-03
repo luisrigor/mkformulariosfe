@@ -61,6 +61,70 @@ export enum IvStatus {
     S = "S",
 }
 
+export interface ListDetail {
+    car:            Car[];
+    monthlyReport:  MonthlyReport;
+    salesAndPlates: SalesAndPlate[];
+}
+
+export interface Car {
+    active:      string;
+    changedBy:   string;
+    createdBy:   string;
+    dtChanged:   string;
+    dtCreated:   string;
+    dtFrom:      string;
+    dtTo:        string;
+    exportOrder: number;
+    id:          number;
+    name:        string;
+    type:        string;
+}
+
+export interface MonthlyReport {
+    available:      number;
+    createdBy:      string;
+    dtAvailability: string;
+    dtCreated:      string;
+    id:             number;
+    month:          number;
+    oidDealer:      string;
+    reason:         string;
+    subDealer:      number;
+    year:           number;
+}
+
+export interface SalesAndPlate {
+    brandId:            number;
+    budget:             number;
+    contracts:          number;
+    dtFrom:             string;
+    dtSelect:           string;
+    dtTo:               string;
+    idPvmMonthlyreport: number;
+    month:              number;
+    oidDealer:          string;
+    platesValue:        number;
+    platesValue2:       number;
+    platesValue3:       number;
+    platesValuep1:      number;
+    platesValuep2:      number;
+    platesValuep3:      number;
+    salesValue:         number;
+    salesValue2:        number;
+    salesValue3:        number;
+    salesValuep1:       number;
+    salesValuep2:       number;
+    salesValuep3:       number;
+    vdvc:               number;
+    vdvc2:              number;
+    vdvc3:              number;
+    vdvcp1:             number;
+    vdvcp2:             number;
+    vdvcp3:             number;
+    year:               number;
+}
+
 export interface PvmMonthlyReport {
     id: number;
     year: number;
