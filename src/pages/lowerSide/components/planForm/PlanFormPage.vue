@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, toRef, ref, onMounted } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 import PlanFormApi from './PlanFormApi'
 
 import Messages from '../../../modalMessages/MessagesPage.vue'
@@ -11,15 +11,6 @@ import { FileUtils } from '../../../../shared/utils/FileUtils';
 const dataOptions = useDataOptions();
 const { dataOptionsStore } = storeToRefs(dataOptions);
 
-interface Props {
-    dataLowerSidePage: {
-        [x: string]: any;
-        type: object,
-        required: true
-    },
-}
-const props = defineProps<Props>()
-const dataPlanForm = toRef(props, 'dataLowerSidePage')
 const dataPlanFormAct = reactive({
     dataSelectPlanForm: {
         year: ''
@@ -81,8 +72,6 @@ const dataPlanFormAct = reactive({
 dataPlanFormAct.dataSelectPlanForm.year = dataOptionsStore.value.yearActual
 const dataResponse = ref([])
 const dataResponseTemp = ref([])
-const dataExcelResponse = ref([])
-const dataExcelResponseTmp = ref('')
 const dataModelService = async () => {
     dataPlanFormAct.skeletonTable = true
     dataPlanFormAct.sendDataPlan.year = dataPlanFormAct.dataSelectPlanForm.year
@@ -201,7 +190,7 @@ const uploadFile = async (file: any) => {
     }
     dataPlanFormAct.dataMessages.loading = false
 }
-const errorFile = async (file: any) => {
+const errorFile = async () => {
     dataPlanFormAct.messages.confirmationModal.state = true
     dataPlanFormAct.messages.confirmationModal.dataModalAction.title = dataPlanFormAct.messagesError.titleError
     dataPlanFormAct.messages.confirmationModal.dataModalAction.data = dataPlanFormAct.messagesError.messagesErrorFile

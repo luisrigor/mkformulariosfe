@@ -1,22 +1,11 @@
 <script setup lang="ts">
-import { reactive, ref, toRef, onMounted } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 import addImg from 'src/assets/images/add.gif'
 import mistakeImg from 'src/assets/images/mistake.png'
 import diskImg from 'src/assets/images/disk.png'
 import ModelApi from './ModelApi'
 
 import Messages from '../../../modalMessages/MessagesPage.vue'
-import { ModelSendType } from './interfaces/Model';
-
-interface Props {
-    dataLowerSidePage: {
-        [x: string]: any;
-        type: object,
-        required: true
-    },
-}
-const props = defineProps<Props>()
-const dataModel = toRef(props, 'dataLowerSidePage')
 const dataModelAct = reactive({
     dataModel: {
         pageTitles: {
@@ -32,7 +21,7 @@ const dataModelAct = reactive({
                 save: 'Grabar Modelo'
             },
             label: {
-                selectType: "Selecione o tipo 12"
+                selectType: 'Selecione o tipo 12'
 
             }
         },
@@ -196,7 +185,7 @@ const saveModel = async () => {
     dataModelAct.dataModel.dataSendFinal.from = dataModelAct.dataModel.dataForm.sinceDate
     dataModelAct.dataModel.dataSendFinal.type = dataModelAct.dataModel.dataForm.type !== '' ? dataModelAct.dataModel.dataForm.type : dataModelAct.dataModel.dataForm.otherType
     try {
-        const responseNewModel = await ModelApi.pvmNewModel(dataModelAct.dataModel.dataSendFinal, dataModelAct.dataModel.idModel)
+        await ModelApi.pvmNewModel(dataModelAct.dataModel.dataSendFinal, dataModelAct.dataModel.idModel)
         dataResponse.value.length = 0
         dataModelService()
         dataModelAct.formNew = false
@@ -303,7 +292,7 @@ onMounted(() => {
                                             </div>
                                         </div>
                                         <div class="row text-h7" style="color: var(--brand-secondary);">
-                                            <div class="col-6">{{ dataModelAct.dataModel.pageTitles.since }}
+                                            <div class="col-5">{{ dataModelAct.dataModel.pageTitles.since }}
                                                 <div class="row">
                                                     <div class="col-6">
                                                         <q-input v-model="dataModelAct.dataModel.dataForm.sinceDate"
@@ -331,7 +320,7 @@ onMounted(() => {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-6">{{ dataModelAct.dataModel.pageTitles.till }}
+                                            <div class="col-5">{{ dataModelAct.dataModel.pageTitles.till }}
                                                 <div class="row">
                                                     <div class="col-6">
                                                         <q-input v-model="dataModelAct.dataModel.dataForm.tillDate"

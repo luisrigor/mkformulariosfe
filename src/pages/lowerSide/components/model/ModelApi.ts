@@ -1,6 +1,6 @@
 import HttpService from '../../../../shared/services/HttpService';
 
-import { Model, ModelSendModel, NewModelSendModel } from './interfaces/Model';
+import { Model, ModelSendModel } from './interfaces/Model';
 class ModelApi {
     public pvmModel = (data: ModelSendModel): Promise<Model> => {
         const url = 'formularios/pvm/model?'

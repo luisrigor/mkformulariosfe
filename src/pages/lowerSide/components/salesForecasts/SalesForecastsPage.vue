@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, toRef, onMounted, ref } from 'vue';
+import { reactive, onMounted, ref } from 'vue';
 import downImg from 'src/assets/images/down.gif'
 import upImg from 'src/assets/images/up.gif'
 import mistakeImg from 'src/assets/images/mistake.png'
@@ -16,15 +16,6 @@ import { FileUtils } from '../../../../shared/utils/FileUtils';
 
 const dataOptions = useDataOptions();
 const { dataOptionsStore } = storeToRefs(dataOptions);
-interface Props {
-    dataLowerSidePage: {
-        [x: string]: any;
-        type: object,
-        required: true
-    }
-}
-const props = defineProps<Props>()
-const dataSalesForecasts = toRef(props, 'dataLowerSidePage')
 const dataSalesForecastsAct = reactive({
     yearActual: '',
     monthActual: '',
@@ -1004,7 +995,8 @@ onMounted(() => {
                           top: 60%;
                         " />
                 </q-btn>
-                <q-btn v-if="dataSalesForecastsAct.dataPvm.date === '' || dataSalesForecastsAct.modaPVMButton" @click="sendReport" style="
+                <q-btn v-if="dataSalesForecastsAct.dataPvm.date === '' || dataSalesForecastsAct.modaPVMButton"
+                    @click="sendReport" style="
                         border: 1px; border-style: solid; border-color:var(--brand-secondary);
                         font-size: 12px;
                         padding-left: 22px;
@@ -1017,7 +1009,8 @@ onMounted(() => {
                           top: 60%;
                         " />
                 </q-btn>
-                <q-btn v-if="dataSalesForecastsAct.dataPvm.date === '' || dataSalesForecastsAct.modaPVMButton" @click="sendReport" style="
+                <q-btn v-if="dataSalesForecastsAct.dataPvm.date === '' || dataSalesForecastsAct.modaPVMButton"
+                    @click="sendReport" style="
                         border: 1px; border-style: solid; border-color:var(--brand-secondary);
                         font-size: 12px;
                         padding-left: 22px;

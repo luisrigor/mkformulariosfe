@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, reactive, ref } from 'vue';
+import { reactive, ref } from 'vue';
 
 export const useDataOptions = defineStore('dataOptions', () => {
     const dataOptionsStore = reactive({

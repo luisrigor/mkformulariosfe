@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, toRef, ref, onMounted } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 import BudgetApi from './BudgetApi'
 
 import Messages from '../../../modalMessages/MessagesPage.vue'
@@ -11,15 +11,6 @@ import { useDataOptions } from '../../../../shared/store/modules/data-options';
 const dataOptions = useDataOptions();
 const { dataOptionsStore } = storeToRefs(dataOptions);
 
-interface Props {
-    dataLowerSidePage: {
-        [x: string]: any;
-        type: object,
-        required: true
-    },
-}
-const props = defineProps<Props>()
-const dataBudgetForm = toRef(props, 'dataLowerSidePage')
 const dataBudgetAct = reactive({
     dataSelectBudgetForm: {
         year: ''
@@ -151,7 +142,6 @@ const dataModelService = async () => {
                 }
                 Array.prototype.push.call(dataResponse.value, dataTemp)
             }
-            const dataUpdateTemp = dataBudgetAct.table.dataColumn
         }
     } catch (error) {
         dataBudgetAct.table.noData = 'Não há Previsões de Vendas'
@@ -159,21 +149,6 @@ const dataModelService = async () => {
     dataBudgetAct.dataMessages.loading = false
     dataBudgetAct.skeletonTable = false
 }
-const columnsModels1 = [
-    { name: 'modelo', align: 'center', label: 'Modelo', field: (dataResponse: { name: string }) => dataResponse.name },
-    { name: 'january ', label: 'Janeiro', field: (dataResponse: { jan: string }) => dataResponse.jan },
-    { name: 'february', label: 'Fevereiro', field: (dataResponse: { feb: string }) => dataResponse.feb },
-    { name: 'march', label: 'Março', field: (dataResponse: { mar: string }) => dataResponse.mar },
-    { name: 'april', label: 'Abril', field: (dataResponse: { apr: string }) => dataResponse.apr },
-    { name: 'may ', label: 'Maio', field: (dataResponse: { may: string }) => dataResponse.may },
-    { name: 'june', label: 'Junho', field: (dataResponse: { jun: string }) => dataResponse.jun },
-    { name: 'july', label: 'Julho', field: (dataResponse: { jul: string }) => dataResponse.jul },
-    { name: 'august', label: 'Agosto', field: (dataResponse: { aug: string }) => dataResponse.aug },
-    { name: 'september ', label: 'Setembro', field: (dataResponse: { sep: string }) => dataResponse.sep },
-    { name: 'octuber', label: 'Outubro', field: (dataResponse: { oct: string }) => dataResponse.oct },
-    { name: 'november', label: 'Novembro', field: (dataResponse: { nov: string }) => dataResponse.nov },
-    { name: 'december', label: 'Dezembro', field: (dataResponse: { dec: string }) => dataResponse.dec }
-]
 const updateService = async () => {
     dataModelService()
 }
@@ -214,7 +189,7 @@ const uploadFile = async (file: any) => {
     }
     dataBudgetAct.dataMessages.loading = false
 }
-const errorFile = async (file: any) => {
+const errorFile = async () => {
     dataBudgetAct.messages.confirmationModal.state = true
     dataBudgetAct.messages.confirmationModal.dataModalAction.title = dataBudgetAct.messagesError.titleError
     dataBudgetAct.messages.confirmationModal.dataModalAction.data = dataBudgetAct.messagesError.messagesErrorFile

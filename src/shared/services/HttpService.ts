@@ -7,10 +7,10 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-dupe-class-members */
 import Axios, { AxiosHeaderValue, AxiosInstance, AxiosRequestConfig } from 'axios';
-import { StatusCodes } from 'http-status-codes';
+// import { StatusCodes } from 'http-status-codes';
 
 import { envBaseUrl } from '../constants/Environment';
-import Routes from '../constants/Routes';
+// import Routes from '../constants/Routes';
 import { HttpError } from '../models/HttpError';
 // import { LOCAL_STORAGE_USER } from '../store/modules/Auth';->Current
 
@@ -52,7 +52,7 @@ class HttpService {
 		this.http.interceptors.response.use(
 			// @ts-expect-error no typoes
 			async (response: AxiosResponse<any>) => {
-				return response.data.type == ("text/csv" || 'application/octet-stream') ? response : response.data;
+				return response.data.type == ('text/csv' || 'application/octet-stream') ? response : response.data;
 			},
 			async (error: any) => {
 				const httpError: HttpError | null = HttpError.error(error);
@@ -135,7 +135,7 @@ class HttpService {
 		return await this.http.patch<T, T>(url, data, config);
 	}
 
-	public async upload<T, K = any>(
+	public async upload<T>(
 		method: 'POST' | 'PUT',
 		url: string,
 		file: any

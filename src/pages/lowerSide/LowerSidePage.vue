@@ -6,8 +6,6 @@ import Model from './components/model/ModelPage.vue'
 import PlanForm from './components/planForm/PlanFormPage.vue'
 import Budget from './components/budget/BudgetPage.vue'
 
-import excelImg from 'src/assets/images/excel.jpg'
-
 interface Props {
   leftOption: string
 }
@@ -83,16 +81,16 @@ onMounted(async () => {
       <q-separator class="background-Secondary"></q-separator>
       <div>&nbsp;</div>
       <div v-if="props.leftOption == 'register'">
-        <sales-forecasts :dataLowerSidePage="dataLowerSidePage"></sales-forecasts>
+        <sales-forecasts ></sales-forecasts>
       </div>
       <div v-if="props.leftOption == 'models'">
-        <model :dataLowerSidePage="dataLowerSidePage"></model>
+        <model ></model>
       </div>
       <div v-if="props.leftOption == 'formPlan'">
-        <plan-form :dataLowerSidePage="dataLowerSidePage"></plan-form>
+        <plan-form ></plan-form>
       </div>
       <div v-if="props.leftOption == 'budget'">
-        <budget :dataLowerSidePage="dataLowerSidePage"></budget>
+        <budget ></budget>
       </div>
     </q-card-section>
   </q-card>

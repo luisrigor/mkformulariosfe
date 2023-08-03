@@ -6,7 +6,7 @@ export type ResponseFileBlob = {
 export class FileUtils {
   /* istanbul ignore next */
 
-  static open = ({ file, fileName }: ResponseFileBlob, openInAnotherTab = true): void => {
+  static open = ({ file, fileName }: ResponseFileBlob): void => {
     let fileUrl = ''
     if (file) {
       fileUrl = window.URL.createObjectURL(file)
