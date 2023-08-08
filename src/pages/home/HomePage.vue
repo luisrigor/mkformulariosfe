@@ -22,10 +22,20 @@ const dataHomePage = reactive({
       title: 'Orçamento',
       name: 'budget',
       icon: 'analytics'
-    },
+    }
   },
-  tabLeftOption: 'register'
+  dataOptionFinal: [],
+  tabLeftOption: 'register',
+  app: ''
 })
+dataHomePage.app = localStorage.getItem('app')
+for (const key in dataHomePage.sideOption) {
+  if (dataHomePage.app === 'Toyota') {
+    Array.prototype.push.call(dataHomePage.dataOptionFinal, dataHomePage.sideOption[key])
+  } else if (dataHomePage.app === 'Lexus' && key !== 'formPlan') {
+    Array.prototype.push.call(dataHomePage.dataOptionFinal, dataHomePage.sideOption[key])
+  }
+}
 </script>
 
 <template>
@@ -35,7 +45,7 @@ const dataHomePage = reactive({
         <q-card-section>
           <div>
             <q-tabs v-model="dataHomePage.tabLeftOption" align="left" class="bg-white shadow-2">
-              <q-tab v-for="option in dataHomePage.sideOption" :key="option.name" :name="option.name"
+              <q-tab v-for="option in dataHomePage.dataOptionFinal" :key="option.name" :name="option.name"
                 :label="option.title" style="text-align: left" align="left" :icon="option.icon">
               </q-tab>
             </q-tabs>

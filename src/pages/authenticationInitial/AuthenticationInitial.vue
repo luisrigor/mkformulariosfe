@@ -19,7 +19,7 @@ const initiateAuthentication = async () => {
     // amgoncalves@C@CeyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbl9wb3J0YWwiOiJhbWdvbmNhbHZlcyIsInB3ZF9wb3J0YWwiOiJ0ZXN0ZTQ1NiJ9.rl7Ivm6GzVaoXrOcpoXU-oFC3rGiJr9RBTJ1M8xjb3k
     const urlActual = window.location
     const cookie = urlActual.hostname.includes('lexus') ? COOKIE_NAME_LEXUS : COOKIE_NAME_TOYOTA
-    const brand = cookie === COOKIE_NAME_LEXUS ? 'lexus' : 'toyota'
+    const brand = cookie === COOKIE_NAME_LEXUS ? 'toyota' : 'lexus'
     const root = document.documentElement;
     if (brand === 'toyota') {
         localStorage.setItem('app', 'Toyota')

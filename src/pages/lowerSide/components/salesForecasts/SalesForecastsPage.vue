@@ -520,7 +520,7 @@ onMounted(() => {
         </span>
         <img style="float: right; padding-top: 4px; padding-right: 10px" :src="dataSalesForecastsAct.imgFilter"
             @click="showFilter" />
-        <div class="bg-white q-pa-md example-row-column-width" v-if="dataSalesForecastsAct.showFilterComponent">
+            <div class="bg-white q-pa-md example-row-column-width" v-if="dataSalesForecastsAct.showFilterComponent">
             <div class="row text-h6" style="color:var(--brand-secondary)">
                 <div class="col-2">{{ dataSalesForecastsAct.pageTitles.year }}</div>
                 <div class="col-2" style="padding-left: 30px;">{{ dataSalesForecastsAct.pageTitles.month }}</div>
@@ -560,7 +560,7 @@ onMounted(() => {
             <q-btn-group push>
                 <q-btn push :label="dataSalesForecastsAct.dataDownloadExcel.oneMonth.title" icon="timeline"
                     style="width: 200px;" color="green-5" flat square @click="downloadExcelComponent(1)" />
-                <q-btn push :label="dataSalesForecastsAct.dataDownloadExcel.threeMonths.title" icon="timeline"
+                <q-btn v-if="dataSalesForecastsAct.app === 'Toyota'" push :label="dataSalesForecastsAct.dataDownloadExcel.threeMonths.title" icon="timeline"
                     style="width: 250px;" color="green-5" flat square @click="downloadExcelComponent(3)" />
             </q-btn-group>
         </div>
