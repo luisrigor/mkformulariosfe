@@ -2,6 +2,8 @@
 import { reactive, ref, onMounted } from 'vue';
 import PlanFormApi from './PlanFormApi'
 
+import mistakeImg from 'src/assets/images/mistake.png'
+import diskImg from 'src/assets/images/disk.png'
 import Messages from '../../../modalMessages/MessagesPage.vue'
 
 import { storeToRefs } from 'pinia';
@@ -67,10 +69,22 @@ const dataPlanFormAct = reactive({
     messagesError: {
         titleError: 'Foram detectadas as seguintes incorreções no Ficheiro:',
         messagesErrorFile: '-O tamanho do Ficheiro não pode ser superior a 1MB\n-O Ficheiro só pode ser do tipo .csv',
+    },
+    dataCsv: [],
+    fileTemp: null,
+    modalUpdateState: {
+        formPlan: 'Plano Form 01',
+        state: false,
+        newType: 'Novo Tipo',
+        return: 'Voltar',
+        save: 'Grabar Modelo'
+
     }
 })
+
 dataPlanFormAct.dataSelectPlanForm.year = dataOptionsStore.value.yearActual
 const dataResponse = ref([])
+const dataResponseModalUpdate = ref([])
 const dataResponseTemp = ref([])
 const dataModelService = async () => {
     dataPlanFormAct.skeletonTable = true
@@ -83,8 +97,9 @@ const dataModelService = async () => {
         if (dataPlanFormAct.dataResponseTemp.car.length > 0) {
             for (const propertyL in dataPlanFormAct.dataResponseTemp.car) {
                 let dataUpdateTemp = {
-                    name: '', jan: 0, feb: 0, mar: 0, apr: 0, may: 0, jun: 0, jul: 0, aug: 0, sep: 0, oct: 0, nov: 0, dec: 0
+                    id: 0, name: '', jan: 0, feb: 0, mar: 0, apr: 0, may: 0, jun: 0, jul: 0, aug: 0, sep: 0, oct: 0, nov: 0, dec: 0
                 }
+                dataUpdateTemp.id = dataPlanFormAct.dataResponseTemp.car[propertyL].id
                 dataUpdateTemp.name = dataPlanFormAct.dataResponseTemp.car[propertyL].name
                 for (const propertyM in dataPlanFormAct.dataResponseTemp.forecast) {
                     if (dataPlanFormAct.dataResponseTemp.car[propertyL].id === dataPlanFormAct.dataResponseTemp.forecast[propertyM].idCarModel) {
@@ -158,8 +173,12 @@ const downloadExcelComponent = async () => {
     dataPlanFormAct.sendDataPlanExcel.yearPlan = dataPlanFormAct.dataSelectPlanForm.year
     dataPlanFormAct.dataMessages.loading = true
     try {
-        const res = await PlanFormApi.downloadCSV(dataPlanFormAct.sendDataPlanExcel)
-        const blob = new Blob([res.data], { type: 'text/csv' })
+        const res = await PlanFormApi.downloadCSVOne(dataPlanFormAct.sendDataPlanExcel)
+        const csvData = res.trim().split('\n').map(row => row.split(','));
+        const csvContent = "\uFEFF" + csvData.map(row => row.join(';')).join('\r\n');
+        const blob = new Blob([s2ab(csvContent)], { type: 'text/csv;charset=ISO-8859-1;' });
+
+
         const fileRename = `PlanForm01_${dataPlanFormAct.dataSelectPlanForm.year}.csv`
         FileUtils.open({
             file: blob,
@@ -173,10 +192,26 @@ const downloadExcelComponent = async () => {
     }
     dataPlanFormAct.dataMessages.loading = false
 }
-const uploadFile = async (file: any) => {
+// Convert string to ArrayBuffer
+const s2ab = (s) => {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < s.length; i++) {
+        if (s.charCodeAt(i) !== 65279) {
+            view[i] = s.charCodeAt(i) & 0xff;
+        }
+    }
+    const bufferTwo = new ArrayBuffer(buf.byteLength - 1);
+    const viewTwo = new Uint8Array(bufferTwo);
+    for (let i = 1; i < view.length; i++) {
+        viewTwo[i - 1] = view[i];
+    }
+    return bufferTwo;
+}
+const uploadFile = async () => {
     dataPlanFormAct.dataMessages.loading = true
     try {
-        await PlanFormApi.uploadCSV(file, dataPlanFormAct.dataSelectPlanForm.year)
+        await PlanFormApi.uploadCSV(dataPlanFormAct.fileTemp, dataPlanFormAct.dataSelectPlanForm.year)
         dataPlanFormAct.messages.confirmationModal.state = true
         dataPlanFormAct.messages.confirmationModal.dataModalAction.title = '¡Operação efectuada com sucesso!'
         dataPlanFormAct.messages.confirmationModal.dataModalAction.icon = 'check_circle_outline'
@@ -189,6 +224,69 @@ const uploadFile = async (file: any) => {
         dataPlanFormAct.messages.confirmationModal.dataModalAction.colorIcon = 'red'
     }
     dataPlanFormAct.dataMessages.loading = false
+}
+const structureDataRowsModalUpdate = async (file: any) => {
+    dataPlanFormAct.fileTemp = file
+    dataPlanFormAct.dataCsv = await extractDataCSV(file)
+    dataResponseModalUpdate.value.length = 0
+    for (const propertyDR in dataResponse.value) {
+        const dataModalUpdateRows = {
+            id: 0, name: '', jan: 0, feb: 0, mar: 0, apr: 0, may: 0, jun: 0, jul: 0, aug: 0, sep: 0, oct: 0, nov: 0, dec: 0
+        }
+        for (const propertyDC in dataPlanFormAct.dataCsv) {
+            if (propertyDC !== 0) {
+                const stingCSV = dataPlanFormAct.dataCsv[propertyDC][0]
+                const dataTempCSV = stingCSV.split(';')
+                for (const propertyDTcsv in dataTempCSV) {
+                    if (propertyDTcsv !== 1) {
+                        const dataReplace = dataTempCSV[0].replace(/"/g, '')
+                        const dataNumberId = parseInt(dataReplace, 10)
+
+                        if (dataResponse.value[propertyDR].id === dataNumberId) {
+                            dataModalUpdateRows.id = dataReplace
+                            dataModalUpdateRows.name = dataResponse.value[propertyDR].name
+                            dataModalUpdateRows.jan = dataTempCSV[2] !== null || dataTempCSV[2] !== '' ? dataTempCSV[2].replace(/"/g, '') : 0
+                            dataModalUpdateRows.feb = dataTempCSV[3] !== null || dataTempCSV[3] !== '' ? dataTempCSV[3].replace(/"/g, '') : 0
+                            dataModalUpdateRows.mar = dataTempCSV[4] !== null || dataTempCSV[4] !== '' ? dataTempCSV[4].replace(/"/g, '') : 0
+                            dataModalUpdateRows.apr = dataTempCSV[5] !== null || dataTempCSV[5] !== '' ? dataTempCSV[5].replace(/"/g, '') : 0
+                            dataModalUpdateRows.may = dataTempCSV[6] !== null || dataTempCSV[6] !== '' ? dataTempCSV[6].replace(/"/g, '') : 0
+                            dataModalUpdateRows.jun = dataTempCSV[7] !== null || dataTempCSV[7] !== '' ? dataTempCSV[7].replace(/"/g, '') : 0
+                            dataModalUpdateRows.jul = dataTempCSV[8] !== null || dataTempCSV[8] !== '' ? dataTempCSV[8].replace(/"/g, '') : 0
+                            dataModalUpdateRows.aug = dataTempCSV[9] !== null || dataTempCSV[9] !== '' ? dataTempCSV[9].replace(/"/g, '') : 0
+                            dataModalUpdateRows.sep = dataTempCSV[10] !== null || dataTempCSV[10] !== '' ? dataTempCSV[10].replace(/"/g, '') : 0
+                            dataModalUpdateRows.oct = dataTempCSV[11] !== null || dataTempCSV[11] !== '' ? dataTempCSV[11].replace(/"/g, '') : 0
+                            dataModalUpdateRows.nov = dataTempCSV[12] !== null || dataTempCSV[12] !== '' ? dataTempCSV[12].replace(/"/g, '') : 0
+                            dataModalUpdateRows.dec = dataTempCSV[13] !== null || dataTempCSV[13] !== '' ? dataTempCSV[13].replace(/"/g, '') : 0
+                        }
+                    }
+                }
+            }
+        }
+        if (dataModalUpdateRows.id !== 0) {
+            Array.prototype.push.call(dataResponseModalUpdate.value, dataModalUpdateRows)
+        }
+    }
+    if (dataResponseModalUpdate.value.length > 0) {
+        dataPlanFormAct.modalUpdateState.state = true
+    }
+
+}
+const extractDataCSV = (file: any) => {
+    return new Promise((resolve) => {
+        let data = null
+        if (file) {
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                const contents = e.target.result
+                const lines = contents.split('\n')
+                data = lines.map(line => line.split(','))
+                resolve(data)
+            };
+            reader.readAsText(file)
+        } else {
+            resolve(data)
+        }
+    })
 }
 const errorFile = async () => {
     dataPlanFormAct.messages.confirmationModal.state = true
@@ -282,7 +380,8 @@ onMounted(() => {
                 <q-btn class="text-black" :label="dataPlanFormAct.dataButtons.donwloadExcel" size="sm" icon="timeline"
                     @click="downloadExcelComponent()" text-color="green-5" style="font-size: 11px" outlined></q-btn>
                 <q-file color="green-5" dense label-color="green-5" :label="dataPlanFormAct.dataButtons.uploadExcel"
-                    size="xs" accept=".csv" max-file-size="1048576" @rejected="errorFile" @update:model-value="uploadFile"
+                    size="xs" accept=".csv" max-file-size="1048576" @rejected="errorFile"
+                    @update:model-value="structureDataRowsModalUpdate"
                     style="font-size: 10px; max-width: 200px; box-shadow:0 1px 5px rgba(0, 0, 0, 0.2), 0 2px 2px rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12)">
                     <template v-slot:prepend>
                         <q-icon name="timeline" color="green-5" />
@@ -306,6 +405,52 @@ onMounted(() => {
                 <q-btn class="text-black" :label="dataPlanFormAct.dataButtons.close"
                     @click="dataPlanFormAct.dataPlanExcel.state = false" icon="close" size="sm" text-color="red-5"
                     square></q-btn>
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
+    <q-dialog v-model="dataPlanFormAct.modalUpdateState.state" persistent position="top">
+        <q-card style="max-width: 1150px;top: 10px">
+            <q-card-section>
+                <q-separator class="background-Secondary"></q-separator>
+                <div class="text-h6 brand-secondary" style="color:var(--brand-secondary)">
+                    {{ dataPlanFormAct.modalUpdateState.formPlan }}
+                </div>
+                <q-separator class="background-Secondary"></q-separator>
+                <div>&nbsp;</div>
+                <q-table flat :rows="dataResponseModalUpdate" :columns="columnsModels" row-key="name"
+                    :rows-per-page-options="[0]" :pagination=dataPlanFormAct.table.pagination
+                    :no-data-label="dataPlanFormAct.table.noData" />
+            </q-card-section>
+            <q-card-actions align="right">
+                <q-card-actions align="right">
+                    <q-btn style="
+                        border: 1px; border-style: solid; border-color:var(--brand-secondary);
+                        font-size: 12px;
+                        padding-left: 22px;
+                        padding-right: 8px;
+                        padding-top: 5px;
+                        width: 80px;
+                      " @click="dataPlanFormAct.modalUpdateState.state = false"
+                        :label="dataPlanFormAct.modalUpdateState.return"><img :src="mistakeImg" style="
+                          transform: translateY(-55%);
+                          position: absolute;
+                          left: 1px;
+                          top: 60%;
+                        " />
+                    </q-btn>
+                    <q-btn @click="uploadFile" style="
+                        border: 1px; border-style: solid; border-color:var(--brand-secondary);
+                        font-size: 12px;
+                        padding-left: 22px;
+                        padding-right: 8px;
+                        padding-top: 5px;" :label="dataPlanFormAct.modalUpdateState.save"><img :src="diskImg" style="
+                          transform: translateY(-55%);
+                          position: absolute;
+                          left: 2px;
+                          top: 60%;
+                        " />
+                    </q-btn>
+                </q-card-actions>
             </q-card-actions>
         </q-card>
     </q-dialog>

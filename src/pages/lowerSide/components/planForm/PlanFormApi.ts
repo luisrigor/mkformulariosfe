@@ -16,6 +16,10 @@ class PlanFormApi {
         dataSent.append('file', data);
         return HttpService.upload('POST', url, dataSent)
     };
+    public downloadCSVOne = (data: PlanExcelSendType): Promise<BlobPart> => {
+        const url = 'formularios/pvm/plan-download-csv?yearPlan=' + data.yearPlan
+        return HttpService.get(url)
+    };
 }
 
 export default new PlanFormApi();
