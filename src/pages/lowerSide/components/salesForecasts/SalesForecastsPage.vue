@@ -47,7 +47,9 @@ const dataSalesForecastsAct = reactive({
 
         },
         titleModalPvm: 'Registo de Previsões',
-        captionModalPvm: 'NOTA: Incluir sempre as viaturas de demonstração (tanto de lançamento como as restantes) considerando que cada viatura corresponde sempre a uma venda e uma matrícula'
+        captionModalPvmFinal: '',
+        captionModalPvmDealer: '(*) - Por vendas entende-se facturação.',
+        captionModalPvmTcap: 'NOTA: Incluir sempre as viaturas de demonstração (tanto de lançamento como as restantes) considerando que cada viatura corresponde sempre a uma venda e uma matrícula'
     },
     dataDownloadExcel: {
         oneMonth: {
@@ -60,6 +62,10 @@ const dataSalesForecastsAct = reactive({
         },
     },
     dataNovo: {
+        newPVm: {
+            title: 'Novo PVM',
+            amount: 0,
+        },
         frotasSul: {
             title: 'Novo PVM Frotas Sul (75)',
             amount: 0,
@@ -134,12 +140,15 @@ const dataSalesForecastsAct = reactive({
         separator: 'cell',
         dataHeaderOne: ['Vendas', 'Matrículas'],
         dataMonths: [],
-        dataHeaderInitialToyota: ['Tipo', 'Modelo', 'Prev-2', 'Prev-1', 'Prev', 'Prev-1', 'Prev', 'Prev']
+        dataHeaderInitialToyota: ['Tipo', 'Modelo', 'Prev-2', 'Prev-1', 'Prev', 'Prev-1', 'Prev', 'Prev'],
+        dataHeaderInitialLexusTcap: ['Tipo', 'Modelo', 'Contratos',  'Vendas (*)', 'Orçamentos', 'Matriculas'],
+        dataHeaderInitialLexusDealer: ['Tipo', 'Modelo', 'Contratos',  'Vendas (*)', 'Orçamentos', 'Matriculas', 'VDVC']
     },
     dataPvm: {},
     dataResponseDetailTemp: [],
     idPVM: 0,
-    modaPVMButton: false
+    modaPVMButton: false,
+    columnsInitial: []
 })
 dataSalesForecastsAct.yearActual = dataOptionsStore.value.yearActual
 dataSalesForecastsAct.monthActual = dataOptionsStore.value.monthActual
@@ -149,11 +158,22 @@ const dataResponseBoardOne = ref([])
 const dataResponseBoardTwo = ref([])
 const dataResponseDetail = ref([])
 const dataSendDetail = ref([])
-const columnsInitial = [
+const columnsInitialTcap = [
     { name: 'num', align: 'center', label: '#', field: 'num' },
     { name: 'cod', label: 'Cod', field: 'cod' },
     { name: 'dealer', label: 'Concessionário', field: 'dealer' },
     { name: 'area', label: 'Área', field: 'area' },
+    { name: 'date', label: 'Data Disponibilização', field: 'date' },
+    {
+        name: 'action',
+        align: 'center',
+        field: ''
+    }
+]
+const columnsInitialDealer = [
+    { name: 'num', align: 'center', label: '#', field: 'num' },
+    { name: 'cod', label: 'Cod', field: 'cod' },
+    { name: 'dealer', label: 'Concessionário', field: 'dealer' },
     { name: 'date', label: 'Data Disponibilização', field: 'date' },
     {
         name: 'action',
@@ -188,6 +208,8 @@ const showFilter = async () => {
     }
 }
 const dataInitial = async () => {
+    dataResponseBoardTwo.value.length = 0
+    dataResponseBoardOne.value.length = 0
     dataSalesForecastsAct.dataSendInitial.year = parseInt(dataSalesForecastsAct.yearActual, 10)
     dataSalesForecastsAct.dataSendInitial.month = dataOptionsStore.value.dataSelect.months.indexOf(dataSalesForecastsAct.monthActual) + 1
     dataSalesForecastsAct.dataMessages.loading = true
@@ -196,17 +218,23 @@ const dataInitial = async () => {
     if (dataSalesForecastsAct.roles === 'TCAP') {
         dataSalesForecastsAct.pageTitles.modalDelete.titleFinal = dataSalesForecastsAct.pageTitles.modalDelete.titleInitialTcap
         dataSalesForecastsAct.pageTitles.modalDelete.captionFinal = dataSalesForecastsAct.pageTitles.modalDelete.captionTcap
+        dataSalesForecastsAct.columnsInitial = columnsInitialTcap
     } else if (dataSalesForecastsAct.roles === 'DEALER') {
         dataSalesForecastsAct.pageTitles.modalDelete.titleFinal = dataSalesForecastsAct.pageTitles.modalDelete.titleInitialDealer
         dataSalesForecastsAct.pageTitles.modalDelete.captionFinal = dataSalesForecastsAct.pageTitles.modalDelete.captionDealer
+        dataSalesForecastsAct.columnsInitial = columnsInitialDealer
+    }
+    if (dataSalesForecastsAct.app === 'Toyota') {
+        dataSalesForecastsAct.pageTitles.captionModalPvmFinal = dataSalesForecastsAct.pageTitles.captionModalPvmTcap 
+    } else if (dataSalesForecastsAct.app === 'Lexus') {
+        dataSalesForecastsAct.pageTitles.captionModalPvmFinal = dataSalesForecastsAct.pageTitles.captionModalPvmDealer 
     }
     try {
         dataSalesForecastsAct.responseDataInitalTemp = await SalesForecastsApi.pvmDataInitial(dataSalesForecastsAct.dataSendInitial)
         if (dataSalesForecastsAct.responseDataInitalTemp.notSendPVM.length > 0) {
-            dataResponseBoardOne.value.length = 0
             for (const propertyL in dataSalesForecastsAct.responseDataInitalTemp.notSendPVM) {
                 const dataFinal = {
-                    idDealer: dataSalesForecastsAct.responseDataInitalTemp.notSendPVM[propertyL].dealer.ivDealerCode,
+                    idDealer: dataSalesForecastsAct.responseDataInitalTemp.notSendPVM[propertyL].dealer.ivDealerCode !== '' ? dataSalesForecastsAct.responseDataInitalTemp.notSendPVM[propertyL].dealer.ivDealerCode : '00',
                     dealer: dataSalesForecastsAct.responseDataInitalTemp.notSendPVM[propertyL].dealer.ivDesig
                 }
                 Array.prototype.push.call(dataResponseBoardOne.value, dataFinal)
@@ -214,7 +242,6 @@ const dataInitial = async () => {
 
         }
         if (dataSalesForecastsAct.responseDataInitalTemp.pvmMonthlyReports.length > 0) {
-            dataResponseBoardTwo.value.length = 0
             for (const propertyH in dataSalesForecastsAct.responseDataInitalTemp.pvmMonthlyReports) {
                 const areaTemp = ref('')
                 if (dataSalesForecastsAct.roles === 'TCAP') {
@@ -352,14 +379,20 @@ const optionEdit = async (data: object) => {
     dataSalesForecastsAct.idPVM = 0
     dataSalesForecastsAct.idPVM = data.num
     dataSalesForecastsAct.dataMessages.loading = true
-    dataSalesForecastsAct.dataResponseDetailTemp = await SalesForecastsApi.pvmDetail(data.num)
-    editDataDetail(dataSalesForecastsAct.dataResponseDetailTemp)
-    dataSalesForecastsAct.dataPvm = data
-    dataSalesForecastsAct.modalPVM = true
-    const positionMontAct = dataOptionsStore.value.dataSelect.months.indexOf(dataSalesForecastsAct.monthActual)
-    Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct])
-    Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct + 1])
-    Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct + 2])
+    try {
+        dataSalesForecastsAct.dataResponseDetailTemp = await SalesForecastsApi.pvmDetail(data.num)
+        editDataDetail(dataSalesForecastsAct.dataResponseDetailTemp)
+        dataSalesForecastsAct.dataPvm = data
+        dataSalesForecastsAct.modalPVM = true
+        const positionMontAct = dataOptionsStore.value.dataSelect.months.indexOf(dataSalesForecastsAct.monthActual)
+        Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct])
+        Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct + 1])
+        Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct + 2])
+    } catch (e) {
+        console.log('error', e)
+    } finally {
+        dataSalesForecastsAct.dataMessages.loading = false
+    }
     dataSalesForecastsAct.dataMessages.loading = false
 }
 const newPVM = async (id: number) => {
@@ -384,15 +417,22 @@ const newPVM = async (id: number) => {
     } else {
 
         dataSalesForecastsAct.dataMessages.loading = true
-        dataSalesForecastsAct.idPVM = await SalesForecastsApi.pvmNew(id)
-        dataSalesForecastsAct.dataResponseDetailTemp = await SalesForecastsApi.pvmDetail(dataSalesForecastsAct.idPVM)
-        editDataDetail(dataSalesForecastsAct.dataResponseDetailTemp)
-        const positionMontAct = dataOptionsStore.value.dataSelect.months.indexOf(dataSalesForecastsAct.monthActual)
-        Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct])
-        Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct + 1])
-        Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct + 2])
+        try {
+            dataSalesForecastsAct.idPVM = await SalesForecastsApi.pvmNew(id)
+            dataSalesForecastsAct.dataResponseDetailTemp = await SalesForecastsApi.pvmDetail(dataSalesForecastsAct.idPVM)
+            editDataDetail(dataSalesForecastsAct.dataResponseDetailTemp)
+            const positionMontAct = dataOptionsStore.value.dataSelect.months.indexOf(dataSalesForecastsAct.monthActual)
+            Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct])
+            Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct + 1])
+            Array.prototype.push.call(dataSalesForecastsAct.tablePvm.dataMonths, dataOptionsStore.value.dataSelect.months[positionMontAct + 2])
+            dataSalesForecastsAct.dataMessages.loading = false
+            dataSalesForecastsAct.modalPVM = true
+        } catch (e) {
+            console.log('error', e)
+        } finally {
+            dataSalesForecastsAct.dataMessages.loading = false
+        }
         dataSalesForecastsAct.dataMessages.loading = false
-        dataSalesForecastsAct.modalPVM = true
 
     }
 }
@@ -421,31 +461,55 @@ const editDataDetail = async (data: object) => {
                             if (propertyRTwo === 'salesAndPlates') {
                                 for (const propertySP in data[propertyRTwo]) {
                                     if (data[propertyRTwo][propertySP].brandId === objectTemp.id) {
-                                        const dataSendTemp = {
-                                            idModel: data[propertyR][propertyC].id,
-                                            p1: data[propertyRTwo][propertySP].platesValue === null ? 0 : data[propertyRTwo][propertySP].platesValue,
-                                            p2: data[propertyRTwo][propertySP].platesValue2 === null ? 0 : data[propertyRTwo][propertySP].platesValue2,
-                                            p3: data[propertyRTwo][propertySP].platesValue3 === null ? 0 : data[propertyRTwo][propertySP].platesValue3,
-                                            s1: data[propertyRTwo][propertySP].salesValue === null ? 0 : data[propertyRTwo][propertySP].salesValue,
-                                            s2: data[propertyRTwo][propertySP].salesValue2 === null ? 0 : data[propertyRTwo][propertySP].salesValue2,
-                                            s3: data[propertyRTwo][propertySP].salesValue3 === null ? 0 : data[propertyRTwo][propertySP].salesValue3,
-                                            v1: 0,
-                                            v2: 0,
-                                            v3: 0,
+                                        if (dataSalesForecastsAct.app === 'Toyota') {
+                                            const dataSendTemp = {
+                                                idModel: data[propertyR][propertyC].id,
+                                                p1: data[propertyRTwo][propertySP].platesValue === null ? 0 : data[propertyRTwo][propertySP].platesValue,
+                                                p2: data[propertyRTwo][propertySP].platesValue2 === null ? 0 : data[propertyRTwo][propertySP].platesValue2,
+                                                p3: data[propertyRTwo][propertySP].platesValue3 === null ? 0 : data[propertyRTwo][propertySP].platesValue3,
+                                                s1: data[propertyRTwo][propertySP].salesValue === null ? 0 : data[propertyRTwo][propertySP].salesValue,
+                                                s2: data[propertyRTwo][propertySP].salesValue2 === null ? 0 : data[propertyRTwo][propertySP].salesValue2,
+                                                s3: data[propertyRTwo][propertySP].salesValue3 === null ? 0 : data[propertyRTwo][propertySP].salesValue3,
+                                                v1: 0,
+                                                v2: 0,
+                                                v3: 0,
+                                            }
+                                            objectTemp['SVP2'] = data[propertyRTwo][propertySP].salesValuep2 === null ? 0 : data[propertyRTwo][propertySP].salesValuep2
+                                            objectTemp['SVP1'] = data[propertyRTwo][propertySP].salesValuep1 === null ? 0 : data[propertyRTwo][propertySP].salesValuep1
+                                            objectTemp['SV'] = data[propertyRTwo][propertySP].salesValue === null ? 0 : data[propertyRTwo][propertySP].salesValue
+                                            objectTemp['SVP3'] = data[propertyRTwo][propertySP].salesValuep3 === null ? 0 : data[propertyRTwo][propertySP].salesValuep3
+                                            objectTemp['SV2'] = data[propertyRTwo][propertySP].salesValue2 === null ? 0 : data[propertyRTwo][propertySP].salesValue2
+                                            objectTemp['SV3'] = data[propertyRTwo][propertySP].salesValue3 === null ? 0 : data[propertyRTwo][propertySP].salesValue3
+                                            objectTemp['PVP2'] = data[propertyRTwo][propertySP].platesValuep2 === null ? 0 : data[propertyRTwo][propertySP].platesValuep2
+                                            objectTemp['PVP1'] = data[propertyRTwo][propertySP].platesValuep1 === null ? 0 : data[propertyRTwo][propertySP].platesValuep1
+                                            objectTemp['PV'] = data[propertyRTwo][propertySP].platesValue === null ? 0 : data[propertyRTwo][propertySP].platesValue
+                                            objectTemp['PVP3'] = data[propertyRTwo][propertySP].platesValuep3 === null ? 0 : data[propertyRTwo][propertySP].platesValuep3
+                                            objectTemp['PV2'] = data[propertyRTwo][propertySP].platesValue2 === null ? 0 : data[propertyRTwo][propertySP].platesValue2
+                                            objectTemp['PV3'] = data[propertyRTwo][propertySP].platesValue3 === null ? 0 : data[propertyRTwo][propertySP].platesValue3
+                                            Array.prototype.push.call(dataSendDetail.value, dataSendTemp)
                                         }
-                                        objectTemp['SVP2'] = data[propertyRTwo][propertySP].salesValuep2 === null ? 0 : data[propertyRTwo][propertySP].salesValuep2
-                                        objectTemp['SVP1'] = data[propertyRTwo][propertySP].salesValuep1 === null ? 0 : data[propertyRTwo][propertySP].salesValuep1
-                                        objectTemp['SV'] = data[propertyRTwo][propertySP].salesValue === null ? 0 : data[propertyRTwo][propertySP].salesValue
-                                        objectTemp['SVP3'] = data[propertyRTwo][propertySP].salesValuep3 === null ? 0 : data[propertyRTwo][propertySP].salesValuep3
-                                        objectTemp['SV2'] = data[propertyRTwo][propertySP].salesValue2 === null ? 0 : data[propertyRTwo][propertySP].salesValue2
-                                        objectTemp['SV3'] = data[propertyRTwo][propertySP].salesValue3 === null ? 0 : data[propertyRTwo][propertySP].salesValue3
-                                        objectTemp['PVP2'] = data[propertyRTwo][propertySP].platesValuep2 === null ? 0 : data[propertyRTwo][propertySP].platesValuep2
-                                        objectTemp['PVP1'] = data[propertyRTwo][propertySP].platesValuep1 === null ? 0 : data[propertyRTwo][propertySP].platesValuep1
-                                        objectTemp['PV'] = data[propertyRTwo][propertySP].platesValue === null ? 0 : data[propertyRTwo][propertySP].platesValue
-                                        objectTemp['PVP3'] = data[propertyRTwo][propertySP].platesValuep3 === null ? 0 : data[propertyRTwo][propertySP].platesValuep3
-                                        objectTemp['PV2'] = data[propertyRTwo][propertySP].platesValue2 === null ? 0 : data[propertyRTwo][propertySP].platesValue2
-                                        objectTemp['PV3'] = data[propertyRTwo][propertySP].platesValue3 === null ? 0 : data[propertyRTwo][propertySP].platesValue3
-                                        Array.prototype.push.call(dataSendDetail.value, dataSendTemp)
+                                        if (dataSalesForecastsAct.app === 'Lexus') {
+                                            const dataSendTemp = {
+                                                idModel: data[propertyR][propertyC].id,
+                                                p1: data[propertyRTwo][propertySP].contracts === null ? 0 : data[propertyRTwo][propertySP].contracts,
+                                                p2: data[propertyRTwo][propertySP].salesValue === null ? 0 : data[propertyRTwo][propertySP].salesValue,
+                                                p3: data[propertyRTwo][propertySP].platesValue === null ? 0 : data[propertyRTwo][propertySP].platesValue,
+                                                s1: data[propertyRTwo][propertySP].salesValue === null ? 0 : data[propertyRTwo][propertySP].vdvc,
+                                            }
+                                            objectTemp['SVP2'] = data[propertyRTwo][propertySP].salesValuep2 === null ? 0 : data[propertyRTwo][propertySP].salesValuep2
+                                            objectTemp['SVP1'] = data[propertyRTwo][propertySP].salesValuep1 === null ? 0 : data[propertyRTwo][propertySP].salesValuep1
+                                            objectTemp['SV'] = data[propertyRTwo][propertySP].salesValue === null ? 0 : data[propertyRTwo][propertySP].salesValue
+                                            objectTemp['SVP3'] = data[propertyRTwo][propertySP].salesValuep3 === null ? 0 : data[propertyRTwo][propertySP].salesValuep3
+                                            objectTemp['SV2'] = data[propertyRTwo][propertySP].salesValue2 === null ? 0 : data[propertyRTwo][propertySP].salesValue2
+                                            objectTemp['SV3'] = data[propertyRTwo][propertySP].salesValue3 === null ? 0 : data[propertyRTwo][propertySP].salesValue3
+                                            objectTemp['PVP2'] = data[propertyRTwo][propertySP].platesValuep2 === null ? 0 : data[propertyRTwo][propertySP].platesValuep2
+                                            objectTemp['PVP1'] = data[propertyRTwo][propertySP].platesValuep1 === null ? 0 : data[propertyRTwo][propertySP].platesValuep1
+                                            objectTemp['PV'] = data[propertyRTwo][propertySP].platesValue === null ? 0 : data[propertyRTwo][propertySP].platesValue
+                                            objectTemp['PVP3'] = data[propertyRTwo][propertySP].platesValuep3 === null ? 0 : data[propertyRTwo][propertySP].platesValuep3
+                                            objectTemp['PV2'] = data[propertyRTwo][propertySP].platesValue2 === null ? 0 : data[propertyRTwo][propertySP].platesValue2
+                                            objectTemp['PV3'] = data[propertyRTwo][propertySP].platesValue3 === null ? 0 : data[propertyRTwo][propertySP].platesValue3
+                                            Array.prototype.push.call(dataSendDetail.value, dataSendTemp)
+                                        }
                                     }
                                 }
                             }
@@ -520,7 +584,7 @@ onMounted(() => {
         </span>
         <img style="float: right; padding-top: 4px; padding-right: 10px" :src="dataSalesForecastsAct.imgFilter"
             @click="showFilter" />
-            <div class="bg-white q-pa-md example-row-column-width" v-if="dataSalesForecastsAct.showFilterComponent">
+        <div class="bg-white q-pa-md example-row-column-width" v-if="dataSalesForecastsAct.showFilterComponent">
             <div class="row text-h6" style="color:var(--brand-secondary)">
                 <div class="col-2">{{ dataSalesForecastsAct.pageTitles.year }}</div>
                 <div class="col-2" style="padding-left: 30px;">{{ dataSalesForecastsAct.pageTitles.month }}</div>
@@ -555,59 +619,73 @@ onMounted(() => {
         </div>
     </div>
     <br /><br />
-    <div class="row">
-        <div class="col-12 col-md-3" style="width: 200px">
+    <div v-if="dataSalesForecastsAct.roles === 'TCAP'">
+        <div class="row">
+            <div class="col-12 col-md-3" style="width: 200px">
+                <q-btn-group push>
+                    <q-btn push :label="dataSalesForecastsAct.dataDownloadExcel.oneMonth.title" icon="timeline"
+                        style="width: 200px;" color="green-5" flat square @click="downloadExcelComponent(1)" />
+                    <q-btn v-if="dataSalesForecastsAct.app === 'Toyota'" push
+                        :label="dataSalesForecastsAct.dataDownloadExcel.threeMonths.title" icon="timeline"
+                        style="width: 250px;" color="green-5" flat square @click="downloadExcelComponent(3)" />
+                </q-btn-group>
+            </div>
+            <div class="col-12 col-md-3">
+            </div>
+        </div>
+        <div class="row" style="padding-top: 10px;">
             <q-btn-group push>
-                <q-btn push :label="dataSalesForecastsAct.dataDownloadExcel.oneMonth.title" icon="timeline"
-                    style="width: 200px;" color="green-5" flat square @click="downloadExcelComponent(1)" />
-                <q-btn v-if="dataSalesForecastsAct.app === 'Toyota'" push :label="dataSalesForecastsAct.dataDownloadExcel.threeMonths.title" icon="timeline"
-                    style="width: 250px;" color="green-5" flat square @click="downloadExcelComponent(3)" />
+                <q-btn push :label="dataSalesForecastsAct.dataNovo.frotasSul.title" icon="add_task"
+                    style="width: 250px;color:var(--brand-secondary)" flat square @click="newPVM(1)" />
+                <q-btn push :label="dataSalesForecastsAct.dataNovo.iMobilizado.title" icon="add_task"
+                    style="width: 250px;color:var(--brand-secondary)" flat square @click="newPVM(2)" />
+                <q-btn push :label="dataSalesForecastsAct.dataNovo.frotasGaia.title" icon="add_task"
+                    style="width: 250px;color:var(--brand-secondary)" flat square @click="newPVM(3)" />
+                <q-btn push :label="dataSalesForecastsAct.dataNovo.export.title" icon="add_task"
+                    style="width: 250px;color:var(--brand-secondary)" flat square @click="newPVM(4)" />
             </q-btn-group>
         </div>
-        <div class="col-12 col-md-3">
-        </div>
     </div>
-    <div class="row" style="padding-top: 10px;">
-        <q-btn-group push>
-            <q-btn push :label="dataSalesForecastsAct.dataNovo.frotasSul.title" icon="add_task"
-                style="width: 250px;color:var(--brand-secondary)" flat square @click="newPVM(1)" />
-            <q-btn push :label="dataSalesForecastsAct.dataNovo.iMobilizado.title" icon="add_task"
-                style="width: 250px;color:var(--brand-secondary)" flat square @click="newPVM(2)" />
-            <q-btn push :label="dataSalesForecastsAct.dataNovo.frotasGaia.title" icon="add_task"
-                style="width: 250px;color:var(--brand-secondary)" flat square @click="newPVM(3)" />
-            <q-btn push :label="dataSalesForecastsAct.dataNovo.export.title" icon="add_task"
-                style="width: 250px;color:var(--brand-secondary)" flat square @click="newPVM(4)" />
-        </q-btn-group>
+    <div v-if="dataSalesForecastsAct.roles === 'DEALER'">
+        <div class="row" style="padding-top: 10px;">
+            <q-btn-group push>
+                <q-btn push :label="dataSalesForecastsAct.dataNovo.newPVm.title" icon="add_task"
+                    style="width: 250px;color:var(--brand-secondary)" flat square @click="newPVM(0)" />
+            </q-btn-group>
+        </div>
     </div>
     <div class="row q-pa-md" style="padding-top: 10px;">
         <div class="col-12 col-md-12">
             <q-card flat>
                 <q-card-section>
-                    <q-table flat :rows="dataResponseBoardTwo" :columns="columnsInitial" row-key="name"
+                    <q-table flat :rows="dataResponseBoardTwo" :columns="dataSalesForecastsAct.columnsInitial" row-key="name"
                         :rows-per-page-options="[0]" :pagination=dataSalesForecastsAct.table.pagination>
-                        <template #body-cell-action="props">
-                            <q-space />
-                            <q-tr :props="props">
-                                <q-td v-if="props.row.date !== ''">
+                        <template v-slot:body-cell-action="props">
+                                <q-td v-if="props.row.date !== ''" :props="props">
                                     <q-btn icon="search" flat round color="amber" @click="optionEdit(props.row)"><q-tooltip
                                             anchor="center right" self="center left" :offset="[10, 10]">
                                             <strong>Consultar Detalhe</strong>
                                         </q-tooltip></q-btn>
-                                    <q-btn icon="delete" flat round color="red" @click="optionDelete(props.row)"><q-tooltip
-                                            anchor="center right" self="center left" :offset="[10, 10]">
+                                    <q-btn v-if="dataSalesForecastsAct.roles === 'TCAP'" icon="delete" flat round
+                                        color="red" @click="optionDelete(props.row)"><q-tooltip anchor="center right"
+                                            self="center left" :offset="[10, 10]">
                                             <strong>Devolver</strong>
                                         </q-tooltip></q-btn>
+                                    <q-btn v-if="dataSalesForecastsAct.roles === 'DEALER'" icon="keyboard_return" flat round
+                                        color="red" @click="optionDelete(props.row)"><q-tooltip anchor="center right"
+                                            self="center left" :offset="[10, 10]">
+                                            <strong>Pedir devolução</strong>
+                                        </q-tooltip></q-btn>
                                 </q-td>
-                                <q-td v-else>
+                                <q-td v-else :props="props">
                                     <q-btn icon="search" flat round color="amber" @click="optionEdit(props.row)"><q-tooltip
                                             anchor="center right" self="center left" :offset="[10, 10]">
                                             <strong>Consultar Detalhe</strong>
                                         </q-tooltip></q-btn>
                                 </q-td>
-                            </q-tr>
                         </template>
                     </q-table>
-                    <q-table title="Concessionários em Atraso" :rows="dataResponseBoardOne" :columns="columnsDealers"
+                    <q-table v-if="dataSalesForecastsAct.roles === 'TCAP'" title="Concessionários em Atraso" :rows="dataResponseBoardOne" :columns="columnsDealers"
                         row-key="name" :rows-per-page-options="[0]" :pagination=dataSalesForecastsAct.table.pagination />
                 </q-card-section>
             </q-card>
@@ -735,17 +813,16 @@ onMounted(() => {
                                     </tr>
                                     <tr v-for="(item, index) in dataResponseDetail" :key="index"
                                         style="color: var(--brand-secondary)">
-                                        <td class="tdTable">
+                                        <td class="tdTable" >
                                             <p style="background-color: var(--brand-primary);color: var(--brand-secondary)">
                                                 {{ getKey(item) }}
                                             </p>
                                     <tr>
-                                        <td class="tdTable" colspan="2">
-                                            <b style="color: black">
+                                        <td class="tdTable" colspan="2" style="color: black; background-color: #CAC8E8 ">
+                                            <b>
                                                 Total de {{ getKey(item) }}
                                             </b>
                                         </td>
-
                                     </tr>
                                     </td>
                                     <td class="tdTable" style="width: 49px;">
@@ -756,7 +833,7 @@ onMounted(() => {
                                             <br />
                                         </span>
                                         <tr style="width: 49px;">
-                                            <td class="tdTable" style="width: 49px;">
+                                            <td class="tdTable" style="width: 49px; color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -772,7 +849,7 @@ onMounted(() => {
                                             <br />
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -788,7 +865,7 @@ onMounted(() => {
                                             <br />
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -804,7 +881,7 @@ onMounted(() => {
                                                 style="width: 49px;margin-bottom: 10px;">
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -820,7 +897,7 @@ onMounted(() => {
                                             <br />
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -836,7 +913,7 @@ onMounted(() => {
                                                 style="width: 49px;margin-bottom: 10px;">
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -852,7 +929,7 @@ onMounted(() => {
                                                 style="width: 49px;margin-bottom: 10px;">
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -868,7 +945,7 @@ onMounted(() => {
                                             <br />
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -884,7 +961,7 @@ onMounted(() => {
                                             <br />
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -900,7 +977,7 @@ onMounted(() => {
                                                 style="width: 49px;margin-bottom: 10px;">
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -916,7 +993,7 @@ onMounted(() => {
                                             <br />
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -932,7 +1009,7 @@ onMounted(() => {
                                                 style="width: 49px;margin-bottom: 10px;">
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -948,7 +1025,142 @@ onMounted(() => {
                                                 style="width: 49px;margin-bottom: 10px;">
                                         </span>
                                         <tr>
-                                            <td class="tdTable">
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+                                        </tr>
+                                    </td>
+                                    </tr>
+                                </table>
+                            </q-card-section>
+                            <q-card-section v-if="dataSalesForecastsAct.app === 'Lexus'">
+                                <table style="width: 961px;" align="center">
+                                    <tr v-if="dataSalesForecastsAct.roles === 'TCAP'" style="background-color: var(--brand-primary);color: var(--brand-secondary)">
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[0] }}</th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[1] }}</th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[2] }}</th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[3] }}</th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[4] }}</th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[5] }}</th>
+                                    </tr>
+                                    <tr v-if="dataSalesForecastsAct.roles === 'DEALER'" style="background-color: var(--brand-primary);color: var(--brand-secondary)">
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[0] }}</th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[1] }}</th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[2] }}</th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[3] }}</th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[4] }}</th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[5] }}</th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[6] }}</th>
+                                    </tr>
+                                    <tr v-for="(item, index) in dataResponseDetail" :key="index"
+                                        style="color: var(--brand-secondary)">
+                                        <td class="tdTable">
+                                            <p style="background-color: var(--brand-primary);color: var(--brand-secondary)">
+                                                {{ getKey(item) }}
+                                            </p>
+                                    <tr align="center">
+                                        <td class="tdTable" colspan="2" style=" width: 180px; color: black; background-color: #CAC8E8 " align="center">
+                                            <b >
+                                                Total de {{ getKey(item) }}
+                                            </b>
+                                        </td>
+
+                                    </tr>
+                                    </td>
+                                    <td class="tdTable" style="width: 49px;">
+                                        <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index">
+                                            <p class="pTable">
+                                                {{ entry.name }}
+                                            </p>
+                                            <br />
+                                        </span>
+                                        <tr style="width: 49px;">
+                                            <td class="tdTable" style="width: 49px; background-color: #CAC8E8 ">
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+
+                                        </tr>
+                                    </td>
+                                    <td class="tdTable" style="width: 49px;">
+                                        <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
+                                            style="height: 1px;padding-bottom: 10px;">
+                                            <input @input="updateModelInput(entry.id, 'p1', $event.target.value)"
+                                                :value="getModelInput(entry.id, 'p1')"
+                                                style="width: 49px;margin-bottom: 10px;">
+                                                <br />
+                                        </span>
+                                        <tr>
+                                            <td class="tdTable" style="width: 180px;color: black; background-color: #CAC8E8 ">
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+
+                                        </tr>
+                                    </td>
+                                    <td class="tdTable" >
+                                        <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index">
+                                            <p class="pTable">
+                                                {{ entry.PVP3 }}
+                                            </p>
+                                            <br />
+                                        </span>
+                                        <tr >
+                                            <td class="tdTable" style="width: 180px; color: black; background-color: #CAC8E8 " >
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+
+                                        </tr>
+                                    </td>
+                                    <td class="tdTable" style="width: 49px;">
+                                        <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
+                                            style="height: 1px;padding-bottom: 10px;">
+                                            <input @input="updateModelInput(entry.id, 'p2', $event.target.value)"
+                                                :value="getModelInput(entry.id, 'p2')"
+                                                style="width: 49px;margin-bottom: 10px;">
+                                                <br/>
+                                        </span>
+                                        <tr>
+                                            <td class="tdTable" style="width: 180px;color: black; background-color: #CAC8E8 ">
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+
+                                        </tr>
+                                    </td>
+                                    <td class="tdTable" style="width: 49px;">
+                                        <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
+                                            style="height: 1px;padding-bottom: 10px;">
+                                            <input @input="updateModelInput(entry.id, 'p3', $event.target.value)"
+                                                :value="getModelInput(entry.id, 'p3')"
+                                                style="width: 49px;margin-bottom: 10px;">
+                                                <br/>
+                                        </span>
+                                        <tr>
+                                            <td class="tdTable" style="width: 180px;color: black; background-color: #CAC8E8 ">
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+                                        </tr>
+                                    </td>
+                                    <td v-if="dataSalesForecastsAct.roles === 'DEALER'" class="tdTable" style="width: 49px;">
+                                        <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
+                                            style="height: 1px;padding-bottom: 10px;">
+                                            <input @input="updateModelInput(entry.id, 's1', $event.target.value)"
+                                                :value="getModelInput(entry.id, 's1')"
+                                                style="width: 49px;margin-bottom: 10px;">
+                                                <br/>
+                                        </span>
+                                        <tr>
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -959,21 +1171,8 @@ onMounted(() => {
                                     </tr>
                                 </table>
                             </q-card-section>
-
-                            <q-card-section v-if="dataSalesForecastsAct.app === 'Lexus'">
-                                <q-table flat :rows="dataResponse" :columns="columnsLexus" :rows-per-page-options="[0]"
-                                    :pagination=dataSalesForecastsAct.tablePvm.pagination
-                                    :no-data-label="dataSalesForecastsAct.tablePvm.noData" bordered
-                                    :separator="dataSalesForecastsAct.tablePvm.separator">
-                                    <template v-slot:header="props">
-                                        <q-th v-for="col in props.cols" :key="col.name" :props="props">
-                                            {{ col.label }}
-                                        </q-th>
-                                    </template>
-                                </q-table>
-                            </q-card-section>
                         </q-card>
-                        {{ dataSalesForecastsAct.pageTitles.captionModalPvm }}
+                        {{ dataSalesForecastsAct.pageTitles.captionModalPvmFinal }}
                     </div>
                 </div>
 

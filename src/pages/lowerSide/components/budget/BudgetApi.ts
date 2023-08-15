@@ -16,6 +16,10 @@ class BudgetApi {
         dataSent.append('file', data);
         return HttpService.upload('POST', url, dataSent)
     };
+    public downloadCSVOne = (data: BudgetExcelSendType): Promise<BlobPart> => {
+        const url = 'formularios/pvm/budget-download?yearBudget=' + data.yearBudget
+        return HttpService.get(url)
+    };
 }
 
 export default new BudgetApi();

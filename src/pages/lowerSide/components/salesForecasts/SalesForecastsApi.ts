@@ -19,7 +19,7 @@ class SalesForecastsApi {
         return HttpService.post(url)
     };
     public pvmRequestChange = (data: SalesForecastsDeleteSendType): Promise<PvmDataInitial> => {
-        const url = 'formularios/pvm/pvm-request-change?cancelReasons=' + data.cancelReasons + '&idPVM=' + data.idPVM
+        const url = 'formularios/pvm/pvm-request-change?cancelReasons=' + data.cancelReasons + '&idPVMS=' + data.idPVM
         return HttpService.post(url)
     };
     public pvmNew = (subDealer:number): Promise<number> => {

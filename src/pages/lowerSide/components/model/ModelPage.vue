@@ -172,11 +172,11 @@ const openNewModel = async () => {
     dataModelAct.formNew = true
 }
 const optionSend = async () => {
-	dataModelAct.messages.confirmationData.state = true
-	dataModelAct.messages.confirmationData.dataModalAction.title = '¿Tem certeza de que deseja salvar o modelo?'
-	dataModelAct.messages.confirmationData.dataModalAction.icon = 'outbound'
-	dataModelAct.messages.confirmationData.dataModalAction.colorIcon = 'blue'
-	dataModelAct.messages.confirmationData.dataModalAction.action = 'send'
+    dataModelAct.messages.confirmationData.state = true
+    dataModelAct.messages.confirmationData.dataModalAction.title = '¿Tem certeza de que deseja salvar o modelo?'
+    dataModelAct.messages.confirmationData.dataModalAction.icon = 'outbound'
+    dataModelAct.messages.confirmationData.dataModalAction.colorIcon = 'blue'
+    dataModelAct.messages.confirmationData.dataModalAction.action = 'send'
 }
 const saveModel = async () => {
     dataModelAct.dataModel.dataSendFinal.model = dataModelAct.dataModel.dataForm.model
@@ -243,7 +243,7 @@ onMounted(() => {
                                     </b>
                                 </div>
                                 <q-separator class="background-Secondary" inset></q-separator>
-                                <div>&nbsp;</div>
+                                <div >&nbsp;</div>
                                 <div class="background-Primary"
                                     style="border: 2px; border-style: solid; border-color:var(--brand-secondary);">
                                     <span class="text-h7" style="padding-left: 5px; color: var(--brand-secondary);">
@@ -455,15 +455,15 @@ onMounted(() => {
                     </div>
                 </q-card-section>
                 <q-card-section v-if="!dataModelAct.skeletonTable">
-                    <q-table flat :rows="dataResponse" :columns="columnsModels" row-key="name" :rows-per-page-options="[0]"
+                    <q-table :rows="dataResponse" :columns="columnsModels" row-key="name" :rows-per-page-options="[0]"
                         :pagination=dataModelAct.table.pagination :no-data-label="dataModelAct.table.noData">
                         <template #body-cell-action="props">
-                            <q-tr :props="props">
-                                <q-btn icon="edit" flat round color="amber" @click="optionEdit(props.row)"><q-tooltip
+                            <q-td :props="props">
+                                <q-btn icon="edit" dense flat round color="amber" @click="optionEdit(props.row)"><q-tooltip
                                         anchor="center right" self="center left" :offset="[10, 10]">
                                         <strong>Editar</strong>
                                     </q-tooltip></q-btn>
-                            </q-tr>
+                            </q-td>
                         </template>
                     </q-table>
                 </q-card-section>
