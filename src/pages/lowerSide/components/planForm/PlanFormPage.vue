@@ -77,7 +77,7 @@ const dataPlanFormAct = reactive({
         state: false,
         newType: 'Novo Tipo',
         return: 'Voltar',
-        save: 'Grabar Modelo'
+        save: 'Guardar'
 
     }
 })

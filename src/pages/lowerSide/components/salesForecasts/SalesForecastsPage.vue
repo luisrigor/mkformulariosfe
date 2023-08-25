@@ -138,17 +138,20 @@ const dataSalesForecastsAct = reactive({
         dataColumn: { name: '', align: '', label: '', field: '' },
         colspanSize: 0,
         separator: 'cell',
-        dataHeaderOne: ['Vendas', 'Matrículas'],
+        dataHeaderOne: ['Vendas', 'Matrículas', 'VD/VC'],
         dataMonths: [],
-        dataHeaderInitialToyota: ['Tipo', 'Modelo', 'Prev-2', 'Prev-1', 'Prev', 'Prev-1', 'Prev', 'Prev'],
-        dataHeaderInitialLexusTcap: ['Tipo', 'Modelo', 'Contratos',  'Vendas (*)', 'Orçamentos', 'Matriculas'],
-        dataHeaderInitialLexusDealer: ['Tipo', 'Modelo', 'Contratos',  'Vendas (*)', 'Orçamentos', 'Matriculas', 'VDVC']
+        dataHeaderInitialToyota: ['Tipo', 'Modelo', 'Prev-2', 'Prev-1', 'Prev', 'Prev-1', 'Prev', 'Prev', 'VD/VC-2', 'VD/VC-1', 'VD/VC'],
+        dataHeaderInitialLexusTcap: ['Tipo', 'Modelo', 'Contratos', 'Vendas (*)', 'Orçamentos', 'Matriculas'],
+        dataHeaderInitialLexusDealer: ['Tipo', 'Modelo', 'Contratos', 'Vendas (*)', 'Orçamentos', 'Matriculas', 'VDVC']
     },
     dataPvm: {},
     dataResponseDetailTemp: [],
     idPVM: 0,
     modaPVMButton: false,
-    columnsInitial: []
+    columnsInitial: [],
+    stateActionCloseModalPVM: false,
+    stateActionSendModalPVM: false,
+    size: ''
 })
 dataSalesForecastsAct.yearActual = dataOptionsStore.value.yearActual
 dataSalesForecastsAct.monthActual = dataOptionsStore.value.monthActual
@@ -189,17 +192,8 @@ const columnsDealers = [
     { name: 'null3', align: 'center', label: '', field: '' },
     { name: 'null4', align: 'center', label: '', field: '' },
 ]
-const columnsLexus = [
-    { name: 'null1', align: 'center', label: 'Tipo', field: '' },
-    { name: 'null2', align: 'center', label: 'Modelo', field: '' },
-    { name: 'idDealer', align: 'center', label: 'Contratos', field: 'idDealer' },
-    { name: 'dealer', align: 'center', label: 'Vendas (*)', field: 'dealer' },
-    { name: 'null3', align: 'center', label: 'Orçamentos', field: '' },
-    { name: 'null4', align: 'center', label: 'Matriculas', field: '' },
-]
-
 const showFilter = async () => {
-    if (dataSalesForecastsAct.imgFilter === '/src/assets/images/down.gif') {
+    if (dataSalesForecastsAct.imgFilter === '/fe/src/assets/images/down.gif') {
         dataSalesForecastsAct.imgFilter = upImg
         dataSalesForecastsAct.showFilterComponent = false
     } else {
@@ -208,6 +202,8 @@ const showFilter = async () => {
     }
 }
 const dataInitial = async () => {
+    dataSalesForecastsAct.stateActionCloseModalPVM = false
+    dataSalesForecastsAct.stateActionSendModalPVM = false
     dataResponseBoardTwo.value.length = 0
     dataResponseBoardOne.value.length = 0
     dataSalesForecastsAct.dataSendInitial.year = parseInt(dataSalesForecastsAct.yearActual, 10)
@@ -216,18 +212,20 @@ const dataInitial = async () => {
     dataSalesForecastsAct.pageTitles.modalDelete.titleFinal = ''
     dataSalesForecastsAct.pageTitles.modalDelete.captionFinal = ''
     if (dataSalesForecastsAct.roles === 'TCAP') {
+        dataSalesForecastsAct.size = '1100px'
         dataSalesForecastsAct.pageTitles.modalDelete.titleFinal = dataSalesForecastsAct.pageTitles.modalDelete.titleInitialTcap
         dataSalesForecastsAct.pageTitles.modalDelete.captionFinal = dataSalesForecastsAct.pageTitles.modalDelete.captionTcap
         dataSalesForecastsAct.columnsInitial = columnsInitialTcap
     } else if (dataSalesForecastsAct.roles === 'DEALER') {
+        dataSalesForecastsAct.size = '1220px'
         dataSalesForecastsAct.pageTitles.modalDelete.titleFinal = dataSalesForecastsAct.pageTitles.modalDelete.titleInitialDealer
         dataSalesForecastsAct.pageTitles.modalDelete.captionFinal = dataSalesForecastsAct.pageTitles.modalDelete.captionDealer
         dataSalesForecastsAct.columnsInitial = columnsInitialDealer
     }
     if (dataSalesForecastsAct.app === 'Toyota') {
-        dataSalesForecastsAct.pageTitles.captionModalPvmFinal = dataSalesForecastsAct.pageTitles.captionModalPvmTcap 
+        dataSalesForecastsAct.pageTitles.captionModalPvmFinal = dataSalesForecastsAct.pageTitles.captionModalPvmTcap
     } else if (dataSalesForecastsAct.app === 'Lexus') {
-        dataSalesForecastsAct.pageTitles.captionModalPvmFinal = dataSalesForecastsAct.pageTitles.captionModalPvmDealer 
+        dataSalesForecastsAct.pageTitles.captionModalPvmFinal = dataSalesForecastsAct.pageTitles.captionModalPvmDealer
     }
     try {
         dataSalesForecastsAct.responseDataInitalTemp = await SalesForecastsApi.pvmDataInitial(dataSalesForecastsAct.dataSendInitial)
@@ -368,6 +366,12 @@ const updateStateConfirmationModel = async (data: object) => {
         dataSalesForecastsAct.messages.confirmationData.state = false
     } else if (data.selectionSend === 'check') {
         dataSalesForecastsAct.messages.confirmationData.state = false
+        if (dataSalesForecastsAct.stateActionCloseModalPVM) {
+            dataSalesForecastsAct.modalPVM = false
+            dataInitial()
+        } else if (dataSalesForecastsAct.stateActionSendModalPVM) {
+            sendReport()
+        }
         dataSalesForecastsAct.dataMessages.loading = true
     } else if (data.selectionSend === 'success') {
         dataSalesForecastsAct.messages.confirmationModal.state = false
@@ -470,9 +474,9 @@ const editDataDetail = async (data: object) => {
                                                 s1: data[propertyRTwo][propertySP].salesValue === null ? 0 : data[propertyRTwo][propertySP].salesValue,
                                                 s2: data[propertyRTwo][propertySP].salesValue2 === null ? 0 : data[propertyRTwo][propertySP].salesValue2,
                                                 s3: data[propertyRTwo][propertySP].salesValue3 === null ? 0 : data[propertyRTwo][propertySP].salesValue3,
-                                                v1: 0,
-                                                v2: 0,
-                                                v3: 0,
+                                                v1: data[propertyRTwo][propertySP].vdvc === null ? 0 : data[propertyRTwo][propertySP].vdvc,
+                                                v2: data[propertyRTwo][propertySP].vdvc2 === null ? 0 : data[propertyRTwo][propertySP].vdvc2,
+                                                v3: data[propertyRTwo][propertySP].vdvc3 === null ? 0 : data[propertyRTwo][propertySP].vdvc3,
                                             }
                                             objectTemp['SVP2'] = data[propertyRTwo][propertySP].salesValuep2 === null ? 0 : data[propertyRTwo][propertySP].salesValuep2
                                             objectTemp['SVP1'] = data[propertyRTwo][propertySP].salesValuep1 === null ? 0 : data[propertyRTwo][propertySP].salesValuep1
@@ -486,6 +490,13 @@ const editDataDetail = async (data: object) => {
                                             objectTemp['PVP3'] = data[propertyRTwo][propertySP].platesValuep3 === null ? 0 : data[propertyRTwo][propertySP].platesValuep3
                                             objectTemp['PV2'] = data[propertyRTwo][propertySP].platesValue2 === null ? 0 : data[propertyRTwo][propertySP].platesValue2
                                             objectTemp['PV3'] = data[propertyRTwo][propertySP].platesValue3 === null ? 0 : data[propertyRTwo][propertySP].platesValue3
+                                            objectTemp['PV3'] = data[propertyRTwo][propertySP].platesValue3 === null ? 0 : data[propertyRTwo][propertySP].platesValue3
+                                            objectTemp['V1'] = data[propertyRTwo][propertySP].vdvc === null ? 0 : data[propertyRTwo][propertySP].vdvc
+                                            objectTemp['V2'] = data[propertyRTwo][propertySP].vdvc3 === null ? 0 : data[propertyRTwo][propertySP].vdvc3
+                                            objectTemp['V3'] = data[propertyRTwo][propertySP].vdvc2 === null ? 0 : data[propertyRTwo][propertySP].vdvc2
+                                            objectTemp['VC1'] = data[propertyRTwo][propertySP].vdvcp1 === null ? 0 : data[propertyRTwo][propertySP].vdvcp1
+                                            objectTemp['VC2'] = data[propertyRTwo][propertySP].vdvcp2 === null ? 0 : data[propertyRTwo][propertySP].vdvcp2
+                                            objectTemp['VC3'] = data[propertyRTwo][propertySP].vdvcp3 === null ? 0 : data[propertyRTwo][propertySP].vdvcp3
                                             Array.prototype.push.call(dataSendDetail.value, dataSendTemp)
                                         }
                                         if (dataSalesForecastsAct.app === 'Lexus') {
@@ -549,6 +560,34 @@ const updateModelInput = (itemOne: any, indexR: string, datoupdate: number) => {
                 }
             }
         }
+    }
+}
+const closeModalPvm = async () => {
+    if (dataSalesForecastsAct.dataPvm.date === '' || dataSalesForecastsAct.modaPVMButton) {
+        dataSalesForecastsAct.stateActionCloseModalPVM = true
+        dataSalesForecastsAct.messages.confirmationData.state = true
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.title = '¿Deseja saír sem Gravar?'
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.icon = 'reply'
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.colorIcon = 'red'
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.action = 'send'
+    } else {
+        dataSalesForecastsAct.modalPVM = false
+    }
+}
+const validationModalPvm = async (action: string) => {
+    dataSalesForecastsAct.stateActionSendModalPVM = true
+    if (action === 'save') {
+        dataSalesForecastsAct.messages.confirmationData.state = true
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.title = '¿Deseja enviar após gravar?'
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.icon = 'outbound'
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.colorIcon = 'blue'
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.action = 'send'
+    } else if (action === 'send') {
+        dataSalesForecastsAct.messages.confirmationData.state = true
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.title = '¿Tem a certeza que deseja enviar este relatório?'
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.icon = 'outbound'
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.colorIcon = 'blue'
+        dataSalesForecastsAct.messages.confirmationData.dataModalAction.action = 'send'
     }
 }
 const sendReport = async () => {
@@ -658,35 +697,36 @@ onMounted(() => {
         <div class="col-12 col-md-12">
             <q-card flat>
                 <q-card-section>
-                    <q-table flat :rows="dataResponseBoardTwo" :columns="dataSalesForecastsAct.columnsInitial" row-key="name"
-                        :rows-per-page-options="[0]" :pagination=dataSalesForecastsAct.table.pagination>
+                    <q-table flat :rows="dataResponseBoardTwo" :columns="dataSalesForecastsAct.columnsInitial"
+                        row-key="name" :rows-per-page-options="[0]" :pagination=dataSalesForecastsAct.table.pagination>
                         <template v-slot:body-cell-action="props">
-                                <q-td v-if="props.row.date !== ''" :props="props">
-                                    <q-btn icon="search" flat round color="amber" @click="optionEdit(props.row)"><q-tooltip
-                                            anchor="center right" self="center left" :offset="[10, 10]">
-                                            <strong>Consultar Detalhe</strong>
-                                        </q-tooltip></q-btn>
-                                    <q-btn v-if="dataSalesForecastsAct.roles === 'TCAP'" icon="delete" flat round
-                                        color="red" @click="optionDelete(props.row)"><q-tooltip anchor="center right"
-                                            self="center left" :offset="[10, 10]">
-                                            <strong>Devolver</strong>
-                                        </q-tooltip></q-btn>
-                                    <q-btn v-if="dataSalesForecastsAct.roles === 'DEALER'" icon="keyboard_return" flat round
-                                        color="red" @click="optionDelete(props.row)"><q-tooltip anchor="center right"
-                                            self="center left" :offset="[10, 10]">
-                                            <strong>Pedir devolução</strong>
-                                        </q-tooltip></q-btn>
-                                </q-td>
-                                <q-td v-else :props="props">
-                                    <q-btn icon="search" flat round color="amber" @click="optionEdit(props.row)"><q-tooltip
-                                            anchor="center right" self="center left" :offset="[10, 10]">
-                                            <strong>Consultar Detalhe</strong>
-                                        </q-tooltip></q-btn>
-                                </q-td>
+                            <q-td v-if="props.row.date !== ''" :props="props">
+                                <q-btn icon="search" flat round color="amber" @click="optionEdit(props.row)"><q-tooltip
+                                        anchor="center right" self="center left" :offset="[10, 10]">
+                                        <strong>Consultar Detalhe</strong>
+                                    </q-tooltip></q-btn>
+                                <q-btn v-if="dataSalesForecastsAct.roles === 'TCAP'" icon="delete" flat round color="red"
+                                    @click="optionDelete(props.row)"><q-tooltip anchor="center right" self="center left"
+                                        :offset="[10, 10]">
+                                        <strong>Devolver</strong>
+                                    </q-tooltip></q-btn>
+                                <q-btn v-if="dataSalesForecastsAct.roles === 'DEALER'" icon="keyboard_return" flat round
+                                    color="red" @click="optionDelete(props.row)"><q-tooltip anchor="center right"
+                                        self="center left" :offset="[10, 10]">
+                                        <strong>Pedir devolução</strong>
+                                    </q-tooltip></q-btn>
+                            </q-td>
+                            <q-td v-else :props="props">
+                                <q-btn icon="search" flat round color="amber" @click="optionEdit(props.row)"><q-tooltip
+                                        anchor="center right" self="center left" :offset="[10, 10]">
+                                        <strong>Consultar Detalhe</strong>
+                                    </q-tooltip></q-btn>
+                            </q-td>
                         </template>
                     </q-table>
-                    <q-table v-if="dataSalesForecastsAct.roles === 'TCAP'" title="Concessionários em Atraso" :rows="dataResponseBoardOne" :columns="columnsDealers"
-                        row-key="name" :rows-per-page-options="[0]" :pagination=dataSalesForecastsAct.table.pagination />
+                    <q-table v-if="dataSalesForecastsAct.roles === 'TCAP'" title="Concessionários em Atraso"
+                        :rows="dataResponseBoardOne" :columns="columnsDealers" row-key="name" :rows-per-page-options="[0]"
+                        :pagination=dataSalesForecastsAct.table.pagination />
                 </q-card-section>
             </q-card>
         </div>
@@ -757,8 +797,7 @@ onMounted(() => {
     </q-dialog>
 
     <q-dialog v-model="dataSalesForecastsAct.modalPVM" persistent>
-        <q-card
-            style="max-width: 1100px; width: 1100px; border: 5px; border-style: solid; border-color:var(--brand-secondary);">
+        <q-card :style="{'max-width': dataSalesForecastsAct.size, 'width': dataSalesForecastsAct.size, 'border': '5px solid var(--brand-secondary)' }">
             <q-card-section class="q-py-md shadow-2">
                 <div class="q" style="padding-left: 15px;">
                     <div class="q-gutter-md  items-start ">
@@ -766,13 +805,15 @@ onMounted(() => {
                             {{ dataSalesForecastsAct.pageTitles.titleModalPvm }}
                         </div>
                         <q-separator class="background-Secondary"></q-separator>
-                        <q-card class="q-ma-md" style="padding-left: 15px;">
+                        <q-card class="q-ma-md" style="padding-left: 14px;">
                             <q-card-section v-if="dataSalesForecastsAct.app === 'Toyota'">
                                 <table style="width: 961px;">
                                     <tr style="background-color: var(--brand-primary);color: var(--brand-secondary)">
                                         <th colspan="2" style="color:white; background-color: white;">0</th>
                                         <th colspan="6">{{ dataSalesForecastsAct.tablePvm.dataHeaderOne[0] }}</th>
                                         <th colspan="6">{{ dataSalesForecastsAct.tablePvm.dataHeaderOne[1] }}</th>
+                                        <th v-if="dataSalesForecastsAct.roles === 'DEALER'" colspan="6">{{
+                                            dataSalesForecastsAct.tablePvm.dataHeaderOne[2] }}</th>
                                     </tr>
                                     <tr style="background-color: var(--brand-primary);color: var(--brand-secondary)">
                                         <th colspan="2" style="color:white; background-color: white;">0</th>
@@ -792,6 +833,16 @@ onMounted(() => {
                                             {{ dataSalesForecastsAct.tablePvm.dataMonths[1] }}
                                         </th>
                                         <th colspan="1">
+                                            {{ dataSalesForecastsAct.tablePvm.dataMonths[2] }}
+                                        </th>
+
+                                        <th v-if="dataSalesForecastsAct.roles === 'DEALER'" colspan="3">
+                                            {{ dataSalesForecastsAct.tablePvm.dataMonths[0] }}
+                                        </th>
+                                        <th v-if="dataSalesForecastsAct.roles === 'DEALER'" colspan="2">
+                                            {{ dataSalesForecastsAct.tablePvm.dataMonths[1] }}
+                                        </th>
+                                        <th v-if="dataSalesForecastsAct.roles === 'DEALER'" colspan="1">
                                             {{ dataSalesForecastsAct.tablePvm.dataMonths[2] }}
                                         </th>
                                     </tr>
@@ -810,17 +861,29 @@ onMounted(() => {
                                         <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialToyota[5] }}</th>
                                         <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialToyota[6] }}</th>
                                         <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialToyota[7] }}</th>
+                                        <th v-if="dataSalesForecastsAct.roles === 'DEALER'" colspan="1">{{
+                                            dataSalesForecastsAct.tablePvm.dataHeaderInitialToyota[8] }}</th>
+                                        <th v-if="dataSalesForecastsAct.roles === 'DEALER'" colspan="1">{{
+                                            dataSalesForecastsAct.tablePvm.dataHeaderInitialToyota[9] }}</th>
+                                        <th v-if="dataSalesForecastsAct.roles === 'DEALER'" colspan="1">{{
+                                            dataSalesForecastsAct.tablePvm.dataHeaderInitialToyota[10] }}</th>
+                                        <th v-if="dataSalesForecastsAct.roles === 'DEALER'" colspan="1">{{
+                                            dataSalesForecastsAct.tablePvm.dataHeaderInitialToyota[9] }}</th>
+                                        <th v-if="dataSalesForecastsAct.roles === 'DEALER'" colspan="1">{{
+                                            dataSalesForecastsAct.tablePvm.dataHeaderInitialToyota[10] }}</th>
+                                        <th v-if="dataSalesForecastsAct.roles === 'DEALER'" colspan="1">{{
+                                            dataSalesForecastsAct.tablePvm.dataHeaderInitialToyota[10] }}</th>
                                     </tr>
                                     <tr v-for="(item, index) in dataResponseDetail" :key="index"
                                         style="color: var(--brand-secondary)">
-                                        <td class="tdTable" >
+                                        <td class="tdTable">
                                             <p style="background-color: var(--brand-primary);color: var(--brand-secondary)">
                                                 {{ getKey(item) }}
                                             </p>
                                     <tr>
-                                        <td class="tdTable" colspan="2" style="color: black; background-color: #CAC8E8 ">
+                                        <td style="color: black; background-color: #CAC8E8; width: 133px;">
                                             <b>
-                                                Total de {{ getKey(item) }}
+                                                Total de
                                             </b>
                                         </td>
                                     </tr>
@@ -833,9 +896,9 @@ onMounted(() => {
                                             <br />
                                         </span>
                                         <tr style="width: 49px;">
-                                            <td class="tdTable" style="width: 49px; color: black; background-color: #CAC8E8 ">
+                                            <td style="width: 133px; color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
-                                                    0
+                                                    {{ getKey(item) }}
                                                 </b>
                                             </td>
 
@@ -1017,11 +1080,111 @@ onMounted(() => {
 
                                         </tr>
                                     </td>
-                                    <td class="tdTable" style="width: 49px;">
-                                        <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
+                                    <td class="ptm-data-odd" style="width: 49px;">
+                                        <span class="ptm-data-odd"
+                                            v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
                                             style="height: 1px;padding-bottom: 10px;">
                                             <input @input="updateModelInput(entry.id, 'p3', $event.target.value)"
                                                 :value="getModelInput(entry.id, 'p3')"
+                                                style="width: 49px;margin-bottom: 10px;">
+                                        </span>
+                                        <tr>
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+                                        </tr>
+                                    </td>
+                                    <td v-if="dataSalesForecastsAct.roles === 'DEALER'" class="tdTable"
+                                        style="width: 49px;">
+                                        <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index">
+                                            <p class="pTable">
+                                                {{ entry.VC1 }}
+                                            </p>
+                                            <br />
+                                        </span>
+                                        <tr>
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+                                        </tr>
+                                    </td>
+                                    <td v-if="dataSalesForecastsAct.roles === 'DEALER'" class="tdTable"
+                                        style="width: 49px;">
+                                        <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index">
+                                            <p class="pTable">
+                                                {{ entry.VC2 }}
+                                            </p>
+                                            <br />
+                                        </span>
+                                        <tr>
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+                                        </tr>
+                                    </td>
+                                    <td v-if="dataSalesForecastsAct.roles === 'DEALER'" class="ptm-data-odd"
+                                        style="width: 49px;">
+                                        <span class="ptm-data-odd"
+                                            v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
+                                            style="height: 1px;padding-bottom: 10px;">
+                                            <input @input="updateModelInput(entry.id, 'v1', $event.target.value)"
+                                                :value="getModelInput(entry.id, 'v1')"
+                                                style="width: 49px;margin-bottom: 10px;">
+                                        </span>
+                                        <tr>
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+                                        </tr>
+                                    </td>
+                                    <td v-if="dataSalesForecastsAct.roles === 'DEALER'" class="tdTable"
+                                        style="width: 49px;">
+                                        <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index">
+                                            <p class="pTable">
+                                                {{ entry.VC3 }}
+                                            </p>
+                                            <br />
+                                        </span>
+                                        <tr>
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+                                        </tr>
+                                    </td>
+                                    <td v-if="dataSalesForecastsAct.roles === 'DEALER'" class="ptm-data-odd"
+                                        style="width: 49px;">
+                                        <span class="ptm-data-odd"
+                                            v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
+                                            style="height: 1px;padding-bottom: 10px;">
+                                            <input @input="updateModelInput(entry.id, 'v2', $event.target.value)"
+                                                :value="getModelInput(entry.id, 'v2')"
+                                                style="width: 49px;margin-bottom: 10px;">
+                                        </span>
+                                        <tr>
+                                            <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
+                                                <b style="color: black">
+                                                    0
+                                                </b>
+                                            </td>
+                                        </tr>
+                                    </td>
+                                    <td v-if="dataSalesForecastsAct.roles === 'DEALER'" class="ptm-data-odd"
+                                        style="width: 49px;">
+                                        <span class="ptm-data-odd"
+                                            v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
+                                            style="height: 1px;padding-bottom: 10px;">
+                                            <input @input="updateModelInput(entry.id, 'v3', $event.target.value)"
+                                                :value="getModelInput(entry.id, 'v3')"
                                                 style="width: 49px;margin-bottom: 10px;">
                                         </span>
                                         <tr>
@@ -1037,22 +1200,37 @@ onMounted(() => {
                             </q-card-section>
                             <q-card-section v-if="dataSalesForecastsAct.app === 'Lexus'">
                                 <table style="width: 961px;" align="center">
-                                    <tr v-if="dataSalesForecastsAct.roles === 'TCAP'" style="background-color: var(--brand-primary);color: var(--brand-secondary)">
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[0] }}</th>
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[1] }}</th>
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[2] }}</th>
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[3] }}</th>
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[4] }}</th>
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[5] }}</th>
+                                    <tr v-if="dataSalesForecastsAct.roles === 'TCAP'"
+                                        style="background-color: var(--brand-primary);color: var(--brand-secondary)">
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[0] }}
+                                        </th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[1] }}
+                                        </th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[2] }}
+                                        </th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[3] }}
+                                        </th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[4] }}
+                                        </th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusTcap[5] }}
+                                        </th>
                                     </tr>
-                                    <tr v-if="dataSalesForecastsAct.roles === 'DEALER'" style="background-color: var(--brand-primary);color: var(--brand-secondary)">
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[0] }}</th>
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[1] }}</th>
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[2] }}</th>
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[3] }}</th>
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[4] }}</th>
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[5] }}</th>
-                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[6] }}</th>
+                                    <tr v-if="dataSalesForecastsAct.roles === 'DEALER'"
+                                        style="background-color: var(--brand-primary);color: var(--brand-secondary)">
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[0] }}
+                                        </th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[1] }}
+                                        </th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[2] }}
+                                        </th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[3] }}
+                                        </th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[4] }}
+                                        </th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[5] }}
+                                        </th>
+                                        <th colspan="1">{{ dataSalesForecastsAct.tablePvm.dataHeaderInitialLexusDealer[6] }}
+                                        </th>
                                     </tr>
                                     <tr v-for="(item, index) in dataResponseDetail" :key="index"
                                         style="color: var(--brand-secondary)">
@@ -1060,13 +1238,12 @@ onMounted(() => {
                                             <p style="background-color: var(--brand-primary);color: var(--brand-secondary)">
                                                 {{ getKey(item) }}
                                             </p>
-                                    <tr align="center">
-                                        <td class="tdTable" colspan="2" style=" width: 180px; color: black; background-color: #CAC8E8 " align="center">
-                                            <b >
-                                                Total de {{ getKey(item) }}
+                                            <tr>
+                                        <td style="color: black; background-color: #CAC8E8; width: 212px;">
+                                            <b>
+                                                Total de
                                             </b>
                                         </td>
-
                                     </tr>
                                     </td>
                                     <td class="tdTable" style="width: 49px;">
@@ -1077,9 +1254,9 @@ onMounted(() => {
                                             <br />
                                         </span>
                                         <tr style="width: 49px;">
-                                            <td class="tdTable" style="width: 49px; background-color: #CAC8E8 ">
+                                            <td style="width: 212px; color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
-                                                    0
+                                                    {{ getKey(item) }}
                                                 </b>
                                             </td>
 
@@ -1091,26 +1268,11 @@ onMounted(() => {
                                             <input @input="updateModelInput(entry.id, 'p1', $event.target.value)"
                                                 :value="getModelInput(entry.id, 'p1')"
                                                 style="width: 49px;margin-bottom: 10px;">
-                                                <br />
-                                        </span>
-                                        <tr>
-                                            <td class="tdTable" style="width: 180px;color: black; background-color: #CAC8E8 ">
-                                                <b style="color: black">
-                                                    0
-                                                </b>
-                                            </td>
-
-                                        </tr>
-                                    </td>
-                                    <td class="tdTable" >
-                                        <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index">
-                                            <p class="pTable">
-                                                {{ entry.PVP3 }}
-                                            </p>
                                             <br />
                                         </span>
-                                        <tr >
-                                            <td class="tdTable" style="width: 180px; color: black; background-color: #CAC8E8 " >
+                                        <tr>
+                                            <td class="tdTable"
+                                                style="width: 180px;color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
@@ -1120,44 +1282,64 @@ onMounted(() => {
                                     </td>
                                     <td class="tdTable" style="width: 49px;">
                                         <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
-                                            style="height: 1px;padding-bottom: 10px;">
-                                            <input @input="updateModelInput(entry.id, 'p2', $event.target.value)"
-                                                :value="getModelInput(entry.id, 'p2')"
-                                                style="width: 49px;margin-bottom: 10px;">
-                                                <br/>
-                                        </span>
-                                        <tr>
-                                            <td class="tdTable" style="width: 180px;color: black; background-color: #CAC8E8 ">
-                                                <b style="color: black">
-                                                    0
-                                                </b>
-                                            </td>
-
-                                        </tr>
+                                        style="height: 1px;padding-bottom: 10px;">
+                                        <input @input="updateModelInput(entry.id, 'p2', $event.target.value)"
+                                        :value="getModelInput(entry.id, 'p2')"
+                                        style="width: 49px;margin-bottom: 10px;">
+                                        <br />
+                                    </span>
+                                    <tr>
+                                        <td class="tdTable"
+                                        style="width: 180px;color: black; background-color: #CAC8E8 ">
+                                        <b style="color: black">
+                                            0
+                                        </b>
                                     </td>
+                                    
+                                </tr>
+                            </td>
+                            <td class="tdTable">
+                                <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index">
+                                    <p class="pTable">
+                                        {{ entry.PVP3 }}
+                                    </p>
+                                    <br />
+                                </span>
+                                <tr>
+                                    <td class="tdTable"
+                                        style="width: 180px; color: black; background-color: #CAC8E8 ">
+                                        <b style="color: black">
+                                            0
+                                        </b>
+                                    </td>
+
+                                </tr>
+                            </td>
                                     <td class="tdTable" style="width: 49px;">
                                         <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
                                             style="height: 1px;padding-bottom: 10px;">
                                             <input @input="updateModelInput(entry.id, 'p3', $event.target.value)"
                                                 :value="getModelInput(entry.id, 'p3')"
                                                 style="width: 49px;margin-bottom: 10px;">
-                                                <br/>
+                                            <br />
                                         </span>
                                         <tr>
-                                            <td class="tdTable" style="width: 180px;color: black; background-color: #CAC8E8 ">
+                                            <td class="tdTable"
+                                                style="width: 180px;color: black; background-color: #CAC8E8 ">
                                                 <b style="color: black">
                                                     0
                                                 </b>
                                             </td>
                                         </tr>
                                     </td>
-                                    <td v-if="dataSalesForecastsAct.roles === 'DEALER'" class="tdTable" style="width: 49px;">
+                                    <td v-if="dataSalesForecastsAct.roles === 'DEALER'" class="tdTable"
+                                        style="width: 49px;">
                                         <span v-for="(entry, index) in item[getFirstPropertyName(item)]" :key="index"
-                                            style="height: 1px;padding-bottom: 10px;">
+                                            style="height: 1px;padding-bottom: 10px; cursor:pointer">
                                             <input @input="updateModelInput(entry.id, 's1', $event.target.value)"
                                                 :value="getModelInput(entry.id, 's1')"
                                                 style="width: 49px;margin-bottom: 10px;">
-                                                <br/>
+                                            <br />
                                         </span>
                                         <tr>
                                             <td class="tdTable" style="color: black; background-color: #CAC8E8 ">
@@ -1168,6 +1350,7 @@ onMounted(() => {
 
                                         </tr>
                                     </td>
+
                                     </tr>
                                 </table>
                             </q-card-section>
@@ -1186,7 +1369,7 @@ onMounted(() => {
                         padding-left: 22px;
                         padding-right: 8px;
                         padding-top: 5px;
-                        width: 80px;" @click="dataSalesForecastsAct.modalPVM = false, dataInitial()"
+                        width: 80px;" @click="closeModalPvm"
                     :label="dataSalesForecastsAct.pageTitles.buttons.return"><img :src="mistakeImg" style="
                           transform: translateY(-55%);
                           position: absolute;
@@ -1195,7 +1378,7 @@ onMounted(() => {
                         " />
                 </q-btn>
                 <q-btn v-if="dataSalesForecastsAct.dataPvm.date === '' || dataSalesForecastsAct.modaPVMButton"
-                    @click="sendReport" style="
+                    @click="validationModalPvm('save')" style="
                         border: 1px; border-style: solid; border-color:var(--brand-secondary);
                         font-size: 12px;
                         padding-left: 22px;
@@ -1209,7 +1392,7 @@ onMounted(() => {
                         " />
                 </q-btn>
                 <q-btn v-if="dataSalesForecastsAct.dataPvm.date === '' || dataSalesForecastsAct.modaPVMButton"
-                    @click="sendReport" style="
+                    @click="validationModalPvm('send')" style="
                         border: 1px; border-style: solid; border-color:var(--brand-secondary);
                         font-size: 12px;
                         padding-left: 22px;
@@ -1221,12 +1404,11 @@ onMounted(() => {
                           left: 2px;
                           top: 60%;
                         " />
-                </q-btn>
-            </q-card-actions>
-        </q-card>
-    </q-dialog>
-    <messages :loading="dataSalesForecastsAct.dataMessages.loading"
-        :confirmationData="dataSalesForecastsAct.messages.confirmationData"
-        :confirmationModal="dataSalesForecastsAct.messages.confirmationModal"
-        @update-state-confirmation="updateStateConfirmationModel"> </messages>
-</template>
+            </q-btn>
+        </q-card-actions>
+    </q-card>
+</q-dialog>
+<messages :loading="dataSalesForecastsAct.dataMessages.loading"
+    :confirmationData="dataSalesForecastsAct.messages.confirmationData"
+    :confirmationModal="dataSalesForecastsAct.messages.confirmationModal"
+    @update-state-confirmation="updateStateConfirmationModel"> </messages></template>

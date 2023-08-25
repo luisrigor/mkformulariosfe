@@ -21,7 +21,7 @@ const dataModelAct = reactive({
                 save: 'Grabar Modelo'
             },
             label: {
-                selectType: 'Selecione o tipo 12'
+                selectType: 'Selecione o tipo'
 
             }
         },
